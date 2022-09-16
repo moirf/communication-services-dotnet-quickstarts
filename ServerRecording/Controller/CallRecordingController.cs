@@ -17,7 +17,6 @@ namespace QuickStartApi.Controllers
     public class CallRecordingController : Controller
     {
         private readonly string blobStorageConnectionString;
-        private readonly string callbackUri;
         private readonly string containerName;
         private readonly CallAutomationClient callingAutomationClient;
         private const string CallRecodingActiveErrorCode = "8553";
@@ -29,7 +28,6 @@ namespace QuickStartApi.Controllers
         public CallRecordingController(IConfiguration configuration, ILogger<CallRecordingController> logger)
         {
             blobStorageConnectionString = configuration["BlobStorageConnectionString"];
-            callbackUri = configuration["CallbackUri"];
             containerName = configuration["BlobContainerName"];
             callingAutomationClient = new CallAutomationClient(configuration["ACSResourceConnectionString"]);
             Logger = logger;
@@ -47,7 +45,6 @@ namespace QuickStartApi.Controllers
             {
                 if (!string.IsNullOrEmpty(serverCallId))
                 {
-                    var uri = new Uri(callbackUri);
                     //Passing RecordingContent initiates recording in specific format. audio/audiovideo
                     //RecordingChannel is used to pass the channel type. mixed/unmixed
                     //RecordingFormat is used to pass the format of the recording. mp4/mp3/wav
