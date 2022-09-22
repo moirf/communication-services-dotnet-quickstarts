@@ -70,24 +70,24 @@ namespace Communication.CallingServer.Sample.CallPlayAudio
 
         public string GetEventKey(CallingServerEventBase callEventBase)
         {
-            if (callEventBase is CallConnectionStateChangedEvent)
+            if (callEventBase is CallConnectionStateChangedEvent callConnectionStateChangedEvent)
             {
-                var callLegId = ((CallConnectionStateChangedEvent)callEventBase).CallConnectionId;
-                return BuildEventKey(CallingServerEventType.CallConnectionStateChangedEvent.ToString(), callLegId);;
+                var callLegId = callConnectionStateChangedEvent.CallConnectionId;
+                return BuildEventKey(CallingServerEventType.CallConnectionStateChangedEvent.ToString(), callLegId);
             }
-            else if (callEventBase is ToneReceivedEvent)
+            else if (callEventBase is ToneReceivedEvent toneReceivedEvent)
             {
-                var callLegId = ((ToneReceivedEvent)callEventBase).CallConnectionId;
+                var callLegId = toneReceivedEvent.CallConnectionId;
                 return BuildEventKey(CallingServerEventType.ToneReceivedEvent.ToString(), callLegId);
             }
-            else if (callEventBase is PlayAudioResultEvent)
+            else if (callEventBase is PlayAudioResultEvent playAudioResultEvent)
             {
-                var operationContext = ((PlayAudioResultEvent)callEventBase).OperationContext;
+                var operationContext = playAudioResultEvent.OperationContext;
                 return BuildEventKey(CallingServerEventType.PlayAudioResultEvent.ToString(), operationContext);
             }
-            else if (callEventBase is AddParticipantResultEvent)
+            else if (callEventBase is AddParticipantResultEvent addParticipantResultEvent)
             {
-                var operationContext = ((AddParticipantResultEvent)callEventBase).OperationContext;
+                var operationContext = addParticipantResultEvent.OperationContext;
                 return BuildEventKey(CallingServerEventType.AddParticipantResultEvent.ToString(), operationContext);
             }
 
