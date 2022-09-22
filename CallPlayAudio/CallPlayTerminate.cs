@@ -110,20 +110,10 @@ namespace Communication.CallingServer.Sample.CallPlayAudio
                 if (response.Value.Status == OperationStatus.Running)
                 {
                     Logger.LogMessage(Logger.MessageType.INFORMATION, $"Play Audio state: {response.Value.Status}");
-                    //// listen to play audio events
-                    //RegisterToPlayAudioResultEvent(playAudioRequest.OperationContext);
-
-                    //var completedTask = await Task.WhenAny(playAudioCompletedTask.Task, Task.Delay(30 * 1000)).ConfigureAwait(false);
-
-                    //if (completedTask != playAudioCompletedTask.Task)
-                    //{
-                    //    Logger.LogMessage(Logger.MessageType.INFORMATION, "No response from user in 30 sec, initiating hangup");
-                    //    playAudioCompletedTask.TrySetResult(false);
-                    //    toneReceivedCompleteTask.TrySetResult(false);
-                    //}
                 }
-              
-                await Task.Delay(5 * 1000);
+
+                // wait for 10 seconds and then terminate the call              
+                await Task.Delay(10 * 1000);
 
                 await HangupAsync().ConfigureAwait(false);
             }

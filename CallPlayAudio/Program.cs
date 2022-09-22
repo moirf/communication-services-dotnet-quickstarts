@@ -57,7 +57,7 @@ namespace Communication.CallingServer.Sample.CallPlayAudio
         {
             try
             {
-                var ngrokPath = ConfigurationManager.AppSettings["NgrokExePath"];
+                var ngrokPath = Constants.GetConfigSetting("NgrokExePath");
 
                 if (string.IsNullOrEmpty(ngrokPath))
                 {
@@ -90,7 +90,7 @@ namespace Communication.CallingServer.Sample.CallPlayAudio
         {
             var callConfiguration = await InitiateConfiguration(appBaseUrl).ConfigureAwait(false);
             CallPlayTerminate CallPlayTerminate = new CallPlayTerminate(callConfiguration);
-            var callPlayTerminatePairs = ConfigurationManager.AppSettings["DestinationIdentities"];
+            var callPlayTerminatePairs = Constants.GetConfigSetting("DestinationIdentities");
             if (callPlayTerminatePairs != null && callPlayTerminatePairs.Length > 0)
             {
                 var identities = callPlayTerminatePairs.Split(';');
@@ -113,8 +113,8 @@ namespace Communication.CallingServer.Sample.CallPlayAudio
         /// <returns>The <c CallConfiguration object.</returns>
         private static async Task<CallConfiguration> InitiateConfiguration(string appBaseUrl)
         {
-            var connectionString = ConfigurationManager.AppSettings["Connectionstring"];
-            var sourcePhoneNumber = ConfigurationManager.AppSettings["SourcePhone"];
+            var connectionString = Constants.GetConfigSetting("Connectionstring");
+            var sourcePhoneNumber = Constants.GetConfigSetting("SourcePhone");
 
             var sourceIdentity = await CreateUser(connectionString).ConfigureAwait(false);
             var audioFileName = await GenerateCustomAudioMessage().ConfigureAwait(false);
@@ -130,6 +130,7 @@ namespace Communication.CallingServer.Sample.CallPlayAudio
 
             try
             {
+                // audio file generation for custom message.
                 if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(region) && !string.IsNullOrEmpty(customMessage))
                 {
                     var config = SpeechConfig.FromSubscription(key, region);
