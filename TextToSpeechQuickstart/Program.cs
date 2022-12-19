@@ -25,12 +25,13 @@ namespace TextToAudioApp
             key = userInput[0];
             region = userInput[1];
             fileName = userInput[2];
+            var name = VerifyFileName(fileName);
             Console.WriteLine("Enter customMessage : ");
             bool done = false;
             do
             {
                 customMessage = Console.ReadLine();
-                await GenerateCustomAudioMessage(fileName);
+                await GenerateCustomAudioMessage(name);
                 ConsoleKeyInfo info = Console.ReadKey(true);
                 if (info.Key == ConsoleKey.Escape)
                 {
@@ -44,6 +45,7 @@ namespace TextToAudioApp
                 {
                     Console.WriteLine("\n Enter FileName:");
                     fileName = Console.ReadLine();
+                    name = VerifyFileName(fileName);
                     Console.WriteLine("Enter custome message:");
                 }
             }
@@ -62,7 +64,7 @@ namespace TextToAudioApp
                     var result = await synthesizer.SpeakTextAsync(customMessage);
                     var stream = AudioDataStream.FromResult(result);
                     await stream.SaveToWaveFileAsync($"../../../${fileName}.wav");
-                    Console.WriteLine("\n Converted customMessage into audio successfully!! \n Enter N to create new file or Press Enter key to continue with same file : \n Press Escap to Stop:");
+                    Console.WriteLine("\n Converted customMessage into audio successfully!! \n Press N to create new file or Press Enter key to continue with same file  : \n Press Escap to Stop:");
                 }
                 else
                 {
@@ -73,6 +75,27 @@ namespace TextToAudioApp
             {
                 Console.WriteLine($"Exception while generating text to speech. Exception: {ex.Message}");
             }
+        }
+
+        public static string VerifyFileName(string fileName)
+        {
+            if (fileName != null && File.Exists($"../../../${fileName}.wav"))
+            {
+
+                Console.WriteLine($"File name {fileName} is already existed .Press Enter to overwrite the existed file or press N to create new file");
+                ConsoleKeyInfo info = Console.ReadKey(true);
+                if (info.Key == ConsoleKey.N)
+                {
+                    Console.WriteLine("\n Enter FileName:");
+                    fileName = Console.ReadLine();
+                    return fileName;
+                }
+                if (info.Key == ConsoleKey.Enter)
+                {
+                    return fileName;
+                }
+            }
+            return fileName;
         }
     }
 }
