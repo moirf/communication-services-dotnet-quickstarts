@@ -1,101 +1,76 @@
-﻿using Azure.Communication;
-using Azure.Communication.Identity;
-using Microsoft.CognitiveServices.Speech;
-using Microsoft.CognitiveServices.Speech.Audio;
-using Microsoft.Extensions.Azure;
-using Microsoft.Owin.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.IO;
-using System.Threading.Tasks;
+﻿using Microsoft.CognitiveServices.Speech;
 
 namespace TextToAudioApp
 {
-    class Program
+    internal class Program
     {
-        public static string key;
-        public static string region;
-        public static string customMessage;
-        public static string fileName;
-        static async Task Main(string[] args)
+        private static string? key;
+        private static string? region;
+        private static SpeechConfig? speechConfig;
+
+        private static async Task Main(string[] args)
         {
-            Console.WriteLine("Enter CognitiveServiceKey ,region and fileName values:");
-            var userInput = Console.ReadLine().Split();
-            key = userInput[0];
-            region = userInput[1];
-            fileName = userInput[2];
-            var name = VerifyFileName(fileName);
-            Console.WriteLine("Enter customMessage : ");
-            bool done = false;
-            do
+            Console.WriteLine("Provide Cognitive Service Key and Region (eg. abcxyz eastus:");
+            string[] inputs = Console.ReadLine().Split();
+
+            if (inputs.Length != 2)
             {
-                customMessage = Console.ReadLine();
-                await GenerateCustomAudioMessage(name);
-                ConsoleKeyInfo info = Console.ReadKey(true);
-                if (info.Key == ConsoleKey.Escape)
+                Console.WriteLine("Usage: Cognitive Service Key Region of Cognitive service. \n eg. <CognitiveSeviceKey> <eastus>");
+                return;
+            }
+
+            key = inputs[0];
+            region = inputs[1];
+
+            //set speech config
+            speechConfig = SpeechConfig.FromSubscription(key, region);
+
+            while (true)
+            {
+                Console.WriteLine("Provide custom text message to convert to speech:");
+                var text = Console.ReadLine();
+
+                if (text == null)
                 {
-                    done = true;
+                    return;
                 }
-                if (info.Key == ConsoleKey.Enter)
+                if(await ConvertTextToSpeech(text))
                 {
-                    Console.WriteLine("Enter custome message:");
-                }
-                if (info.Key == ConsoleKey.N)
-                {
-                    Console.WriteLine("\n Enter FileName:");
-                    fileName = Console.ReadLine();
-                    name = VerifyFileName(fileName);
-                    Console.WriteLine("Enter custome message:");
+                    Console.WriteLine("File saved, Hit Esc Key to Exit, Press any other key to continiue.");
+                    if(Console.ReadKey(true).Key == ConsoleKey.Escape)
+                    {
+                        break;
+                    }
                 }
             }
-            while (!done);
         }
-        private static async Task GenerateCustomAudioMessage(string fileName)
+        private static async Task<bool> ConvertTextToSpeech(string text)
         {
             try
             {
-                if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(region) && !string.IsNullOrEmpty(customMessage))
+                if (speechConfig == null)
                 {
-                    var config = SpeechConfig.FromSubscription(key, region);
-                    config.SetSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Riff16Khz16BitMonoPcm);
+                    Console.WriteLine($"Configuration issue in cognitive service, close the app and retry.");
+                    return false;
+                }
 
-                    var synthesizer = new SpeechSynthesizer(config, null);
-                    var result = await synthesizer.SpeakTextAsync(customMessage);
-                    var stream = AudioDataStream.FromResult(result);
-                    await stream.SaveToWaveFileAsync($"../../../${fileName}.wav");
-                    Console.WriteLine("\n Converted customMessage into audio successfully!! \n Press N to create new file or Press Enter key to continue with same file  : \n Press Escap to Stop:");
-                }
-                else
-                {
-                    Console.WriteLine("CognitiveKey or CognitiveRegion or custom messsage value is null");
-                }
+                speechConfig.SetSpeechSynthesisOutputFormat(SpeechSynthesisOutputFormat.Riff16Khz16BitMonoPcm);
+
+                var synthesizer = new SpeechSynthesizer(speechConfig, null);
+                var result = await synthesizer.SpeakTextAsync(text);
+                var stream = AudioDataStream.FromResult(result);
+
+                Console.Write("Text to speach converted, Enter the file name to save: (no space or special characters:");
+                var fileName = Console.ReadLine();
+                await stream.SaveToWaveFileAsync($"../../../${fileName}.wav");
+                
+                return true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Exception while generating text to speech. Exception: {ex.Message}");
+                return false;
             }
-        }
-
-        public static string VerifyFileName(string fileName)
-        {
-            if (fileName != null && File.Exists($"../../../${fileName}.wav"))
-            {
-
-                Console.WriteLine($"File name {fileName} is already existed .Press Enter to overwrite the existed file or press N to create new file");
-                ConsoleKeyInfo info = Console.ReadKey(true);
-                if (info.Key == ConsoleKey.N)
-                {
-                    Console.WriteLine("\n Enter FileName:");
-                    fileName = Console.ReadLine();
-                    return fileName;
-                }
-                if (info.Key == ConsoleKey.Enter)
-                {
-                    return fileName;
-                }
-            }
-            return fileName;
         }
     }
 }
