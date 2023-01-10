@@ -60,7 +60,7 @@ namespace TextToAudioApp
                 var result = await synthesizer.SpeakTextAsync(text);
                 var stream = AudioDataStream.FromResult(result);
 
-                Console.Write("Text to speach converted, Enter the file name to save: (no space or special characters:");
+                Console.Write("Text to speach converted, Enter the file name to save:");
                 var fileName = Console.ReadLine();
                 await stream.SaveToWaveFileAsync($"../../../${fileName}.wav");
                 
