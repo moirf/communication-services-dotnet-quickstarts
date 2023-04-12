@@ -234,7 +234,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         {
             logger.LogInformation($"{participant.Identifier.RawId}");
         }
-
+        logger.LogInformation($"{participantlistResponse.Value.Count}");
         int hangupScenario = callConfiguration.Value.HangUpScenarios;
         if (hangupScenario == 1)
         {
