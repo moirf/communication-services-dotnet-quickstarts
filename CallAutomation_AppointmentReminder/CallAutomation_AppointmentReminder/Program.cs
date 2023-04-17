@@ -4,6 +4,7 @@ using Azure.Communication.CallAutomation;
 using Azure.Messaging;
 using CallAutomation_AppointmentReminder;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
@@ -103,7 +104,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         if (@event is CallConnected)
         {
             //Initiate recognition as call connected event is received
-            logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
+            logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}" );
             var recognizeOptions =
             new CallMediaRecognizeDtmfOptions(CommunicationIdentifier.FromRawId(TargetIdentity), maxTonesToCollect: 1)
             {
@@ -120,7 +121,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         if (@event is RecognizeCompleted { OperationContext: "AppointmentReminderMenu" })
         {
             // Play audio once recognition is completed sucessfully
-            logger.LogInformation($"RecognizeCompleted event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
+            logger.LogInformation($"RecognizeCompleted event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}" );
             var recognizeCompletedEvent = (RecognizeCompleted)@event;
             var toneDetected = ((CollectTonesResult)recognizeCompletedEvent.RecognizeResult).Tones[0];
             if (toneDetected == DtmfTone.Three)
@@ -160,7 +161,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                     await Task.Delay(TimeSpan.FromSeconds(10));
 
                     logger.LogInformation($"Add participant call : {response.Value.Participant}" + $"  Status of call :{response.GetRawResponse().Status}"
-                        + $"  participant ID: {response.Value.Participant.Identifier}" + $" participat is muted : {response.Value.Participant.IsMuted}");
+                        + $"  participant ID: {response.Value.Participant.Identifier}" + $" participat is muted : {response.Value.Participant.IsMuted}" + $"Call Connection Properties :{callConnection.GetCallConnectionProperties().Value.CallConnectionState}");
                 }
             }
         }
@@ -194,7 +195,9 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         if (@event is AddParticipantSucceeded participant)
         {
             addedParticipantsCount++;
-            logger.LogInformation($"participant added ---> {participant.Participant.RawId}");
+            //var participantResponse = await callConnection.GetParticipantAsync(participant.Participant.RawId);
+           // logger.LogInformation($"participant Response---> {participantResponse.Value}");
+            logger.LogInformation($"participant added ---> {participant.Participant.RawId}"+$"Call Connection Properties :{callConnection.GetCallConnectionProperties().ToString()}");
 
             if ((addedParticipantsCount + declineParticipantsCount) == addedParticipants.Length)
             {
@@ -221,6 +224,14 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             RemoveParticipantFailed removeParticipantFailed = (RemoveParticipantFailed)@event;
             logger.LogInformation($"Remove participant failed RawId:{removeParticipantFailed.Participant.RawId}");
         }
+        if(@event is ParticipantsUpdated participantsUpdate)
+        {
+            logger.LogInformation($"Participants Updated -------> {participantsUpdate.Participants.Last()}");
+            foreach (var participan in participantsUpdate.Participants)
+            {
+                logger.LogInformation($"Participant ID : {participan.Identifier.RawId} ,Is Muted : {participan.IsMuted}");
+            }
+        }
     }
 
     //Perform HangUp
@@ -229,10 +240,12 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         await Task.Delay(TimeSpan.FromSeconds(10));
 
         var participantlistResponse = await callConnection.GetParticipantsAsync();
+        
         logger.LogInformation("-------Participant List----- ");
         foreach(var participant in participantlistResponse.Value)
         {
             logger.LogInformation($"{participant.Identifier.RawId}");
+            logger.LogInformation($"Participant ID : {participant.Identifier.RawId} ,Is Muted : {participant.IsMuted}");
         }
         logger.LogInformation($"{participantlistResponse.Value.Count}");
         int hangupScenario = callConfiguration.Value.HangUpScenarios;
