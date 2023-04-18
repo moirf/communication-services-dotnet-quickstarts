@@ -31,7 +31,7 @@ namespace CallAutomation_AppointmentReminder
         /// <summary>
         /// The phone number to add Participant to the call. 
         /// </summary>
-        public string AddParticipantNumber { get; set; }
+        public string AddParticipantList { get; set; }
 
         /// <summary>
         /// The base url of the applicaiton.
