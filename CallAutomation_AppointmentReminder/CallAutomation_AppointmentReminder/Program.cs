@@ -22,7 +22,7 @@ builder.Services.AddSingleton(new CallAutomationClient(callConfigurationSection[
 var app = builder.Build();
 var TargetIdentity = "";
 var sourceIdentity = await app.ProvisionAzureCommunicationServicesIdentity(callConfigurationSection["ConnectionString"]);
-var target = callConfigurationSection["AddParticipantNumber"];
+var target = callConfigurationSection["AddParticipantList"];
 var addedParticipants = target.Split(';');
 int addedParticipantsCount = 0;
 int declineParticipantsCount = 0;
@@ -273,7 +273,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                 List<CallParticipant> participantsToRemoveAll = (await callConnection.GetParticipantsAsync()).Value.ToList();
                 foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                 {
-                    var Plist = callConfiguration.Value.AddParticipantNumber;
+                    var Plist = callConfiguration.Value.AddParticipantList;
                     if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
                             Plist.Contains(participantToRemove.Identifier.ToString()))
                     {
