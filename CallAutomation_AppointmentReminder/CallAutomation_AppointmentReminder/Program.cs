@@ -227,7 +227,6 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             {
                 logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId}");
             }
-            await callConnection.HangUpAsync(true);
         }
     }
 
