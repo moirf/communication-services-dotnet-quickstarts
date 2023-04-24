@@ -30,7 +30,6 @@ CommunicationIdentifierKind GetIdentifierKind(string participantnumber)
  Regex.Match(participantnumber, Constants.phoneIdentityRegex, RegexOptions.IgnoreCase).Success ? CommunicationIdentifierKind.PhoneIdentity :
  CommunicationIdentifierKind.UnknownIdentity;
 }
-var TotalParticipants = false;
 int addedParticipantsCount = 0;
 int declineParticipantsCount = 0;
 var target = builder.Configuration["ParticipantToAdd"];
@@ -117,7 +116,6 @@ app.MapPost("/api/calls/{contextId}", async (
 
         if (@event is CallConnected)
         {
-            TotalParticipants = false;
             addedParticipantsCount = 0;
             declineParticipantsCount = 0;
 
@@ -182,8 +180,6 @@ app.MapPost("/api/calls/{contextId}", async (
         {
             if (@event.OperationContext == "AgentConnect")
             {
-                var target = builder.Configuration["ParticipantToAdd"];
-
                 foreach (var Participantindentity in Participants)
                 {
                     var identifierKind = GetIdentifierKind(Participantindentity);
@@ -250,7 +246,7 @@ app.MapPost("/api/calls/{contextId}", async (
             declineParticipantsCount++;
             AddParticipantFailed addParticipantFailed = (AddParticipantFailed)@event;
             logger.LogInformation($"Failed participant Reason -------> {failedParticipant.ResultInformation?.Message}");
-            if ((addedParticipantsCount + declineParticipantsCount) == Participants.Count())
+            if ((addedParticipantsCount + declineParticipantsCount) == Participants.Length)
             {
                 await PerformHangUp(callConnection);
             }
@@ -316,9 +312,9 @@ app.MapPost("/api/calls/{contextId}", async (
                 var response = await callConnection.HangUpAsync(false);
                 logger.LogInformation($"Hang up response : {response}");
             }
-            else if (hangupScenario == 3 || hangupScenario == 3)
+            else if (hangupScenario == 3 || hangupScenario == 4)
             {
-                if (addedParticipantsCount == 0)
+                if (addedParticipantsCount == 0 && hangupScenario == 3)
                 {
                     logger.LogInformation($"No participants got addedd to remove");
                 }
@@ -328,9 +324,8 @@ app.MapPost("/api/calls/{contextId}", async (
                     List<CallParticipant> participantsToRemoveAll = (await callConnection.GetParticipantsAsync()).Value.ToList();
                     foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                     {
-                        var Plist = builder.Configuration["ParticipantToAdd"];
                         if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
-                                Plist.Contains(participantToRemove.Identifier.ToString()) ||
+                                target.Contains(participantToRemove.Identifier.ToString()) ||
                                 (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(sourceCallerID)))
                         {
                             var RemoveParticipant = new RemoveParticipantOptions(participantToRemove.Identifier);

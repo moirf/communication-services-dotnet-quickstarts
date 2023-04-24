@@ -102,6 +102,8 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         var callConnectionMedia = callConnection.GetCallMedia();
         if (@event is CallConnected)
         {
+            addedParticipantsCount = 0;
+            declineParticipantsCount = 0;
             //Initiate recognition as call connected event is received
             logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
             var recognizeOptions =
@@ -204,7 +206,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         {
             declineParticipantsCount++;
             logger.LogInformation($"Failed participant Reason -------> {failedParticipant.ResultInformation?.Message}");
-            if ((addedParticipantsCount + declineParticipantsCount) == addedParticipants.Count())
+            if ((addedParticipantsCount + declineParticipantsCount) == addedParticipants.Length)
             {
                 await PerformHangUp(callConnection);
             }
@@ -255,9 +257,9 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             var response = await callConnection.HangUpAsync(false);
             logger.LogInformation($"Hang up response : {response}");
         }
-        else if (hangupScenario == 3)
+        else if (hangupScenario == 3 || hangupScenario == 4)
         {
-            if (addedParticipantsCount == 0)
+            if (addedParticipantsCount == 0 && hangupScenario == 3)
             {
                 logger.LogInformation($"No participants got addedd to remove");
             }
@@ -267,9 +269,8 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                 List<CallParticipant> participantsToRemoveAll = (await callConnection.GetParticipantsAsync()).Value.ToList();
                 foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                 {
-                    var Plist = builder.Configuration["ParticipantToAdd"];
                     if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
-                            Plist.Contains(participantToRemove.Identifier.ToString()) ||
+                            target.Contains(participantToRemove.Identifier.ToString()) ||
                             (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(TargetIdentity)))
                     {
                         var RemoveParticipant = new RemoveParticipantOptions(participantToRemove.Identifier);
