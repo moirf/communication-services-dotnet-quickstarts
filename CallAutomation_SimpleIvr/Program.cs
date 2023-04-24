@@ -276,7 +276,7 @@ app.MapPost("/api/calls/{contextId}", async (
             logger.LogInformation("-------Updated Participant List----- ");
             foreach (var participant in updatedParticipantEvent.Participants)
             {
-                logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId}");
+                logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId},  IsMuted : {participant.IsMuted}");
             }
         }
         if (@event is CallTransferAccepted callTransferAccepted)

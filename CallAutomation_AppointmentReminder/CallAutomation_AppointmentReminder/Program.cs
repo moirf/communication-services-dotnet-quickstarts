@@ -227,7 +227,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             logger.LogInformation("-------Updated Participant List----- ");
             foreach (var participant in updatedParticipantEvent.Participants)
             {
-                logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId}");
+                logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId},  IsMuted : {participant.IsMuted}");
             }
         }
     }
