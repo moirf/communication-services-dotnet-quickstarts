@@ -124,7 +124,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             // Play audio once recognition is completed sucessfully
             logger.LogInformation($"RecognizeCompleted event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
             var recognizeCompletedEvent = (RecognizeCompleted)@event;
-            var toneDetected = ((CollectTonesResult)recognizeCompletedEvent.RecognizeResult).Tones[0];
+            DtmfTone toneDetected = ((DtmfResult)recognizeCompletedEvent.RecognizeResult).Tones[0];
             if (toneDetected == DtmfTone.Three)
             {
                 var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration);
