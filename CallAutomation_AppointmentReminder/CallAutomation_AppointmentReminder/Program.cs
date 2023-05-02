@@ -224,7 +224,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         if (@event is ParticipantsUpdated updatedParticipantEvent)
         {
             logger.LogInformation($"Participant Updated Event Recieved");
-            logger.LogInformation("-------Updated Participant List----- ");
+            logger.LogInformation($"------- Updated Participant : {updatedParticipantEvent.Participants.Count} -------- ");
             foreach (var participant in updatedParticipantEvent.Participants)
             {
                 logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId},  IsMuted : {participant.IsMuted}");
@@ -238,7 +238,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         await Task.Delay(TimeSpan.FromSeconds(10));
 
         var participantlistResponse = await callConnection.GetParticipantsAsync();
-        logger.LogInformation("-------Participant List----- ");
+        logger.LogInformation($"-------Participant List  : {participantlistResponse.Value.Count} ----- ");
         foreach (var participant in participantlistResponse.Value)
         {
             logger.LogInformation($"{participant.Identifier.RawId}");
@@ -267,16 +267,31 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             {
                 logger.LogInformation($"Going to remove added partipants.");
                 List<CallParticipant> participantsToRemoveAll = (await callConnection.GetParticipantsAsync()).Value.ToList();
+                CommunicationIdentifier targetParticipant = null;
                 foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                 {
                     if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
                             target.Contains(participantToRemove.Identifier.ToString()) ||
-                            (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(TargetIdentity)))
+                            (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(TargetIdentity))) 
                     {
-                        var RemoveParticipant = new RemoveParticipantOptions(participantToRemove.Identifier);
-                        var removeParticipantResponse = await callConnection.RemoveParticipantAsync(RemoveParticipant);
-                        logger.LogInformation($"Removing participant Response : {removeParticipantResponse.Value.ToString}");
+                        if (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(TargetIdentity))
+                        {
+                            targetParticipant = participantToRemove.Identifier;
+                        }
+                        else
+                        {
+                            var RemoveParticipant = new RemoveParticipantOptions(participantToRemove.Identifier);
+                            logger.LogInformation($"going to remove participant : {participantToRemove.Identifier.RawId}");
+                            var removeParticipantResponse = await callConnection.RemoveParticipantAsync(RemoveParticipant);
+                            logger.LogInformation($"Removing participant Response : {removeParticipantResponse.GetRawResponse()}");
+                        }
                     }
+                }
+                if (targetParticipant != null)
+                {
+                    logger.LogInformation($"going to remove target participant : {targetParticipant.RawId}");
+                    var removeParticipantResponse = await callConnection.RemoveParticipantAsync(targetParticipant);
+                    logger.LogInformation($"Removing participant Response : {removeParticipantResponse.GetRawResponse()}");
                 }
             }
         }

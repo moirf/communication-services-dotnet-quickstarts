@@ -326,19 +326,22 @@ app.MapPost("/api/calls/{contextId}", async (
                     foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                     {
                         if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
-                                target.Contains(participantToRemove.Identifier.ToString()))
+                                target.Contains(participantToRemove.Identifier.ToString()) ||
+                                (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(sourceCallerID)))
                         {
                             if (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(sourceCallerID))
                             {
                                 sourceParticipant = participantToRemove.Identifier;
                             }
-                            var RemoveParticipant = new RemoveParticipantOptions(participantToRemove.Identifier);
-                            logger.LogInformation($"going to remove participant : {participantToRemove.Identifier.RawId}");
-                            var removeParticipantResponse = await callConnection.RemoveParticipantAsync(RemoveParticipant);
-                            logger.LogInformation($"Removing participant Response : {removeParticipantResponse.Value.ToString}");
+                            else
+                            {
+                                var RemoveParticipant = new RemoveParticipantOptions(participantToRemove.Identifier);
+                                logger.LogInformation($"going to remove participant : {participantToRemove.Identifier.RawId}");
+                                var removeParticipantResponse = await callConnection.RemoveParticipantAsync(RemoveParticipant);
+                                logger.LogInformation($"Removing participant Response : {removeParticipantResponse.Value.ToString}");
+                            }
                         }
                     }
-
                     if(sourceParticipant != null)
                     {
                         logger.LogInformation($"going to remove participant : {sourceParticipant.RawId}");
