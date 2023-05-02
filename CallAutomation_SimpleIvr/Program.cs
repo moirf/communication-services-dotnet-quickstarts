@@ -322,16 +322,28 @@ app.MapPost("/api/calls/{contextId}", async (
                 {
                     logger.LogInformation($"Going to remove added partipants.");
                     List<CallParticipant> participantsToRemoveAll = (await callConnection.GetParticipantsAsync()).Value.ToList();
+                    CommunicationIdentifier sourceParticipant = null;
                     foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                     {
                         if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
-                                target.Contains(participantToRemove.Identifier.ToString()) ||
-                                (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(sourceCallerID)))
+                                target.Contains(participantToRemove.Identifier.ToString()))
                         {
+                            if (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(sourceCallerID))
+                            {
+                                sourceParticipant = participantToRemove.Identifier;
+                            }
                             var RemoveParticipant = new RemoveParticipantOptions(participantToRemove.Identifier);
+                            logger.LogInformation($"going to remove participant : {participantToRemove.Identifier.RawId}");
                             var removeParticipantResponse = await callConnection.RemoveParticipantAsync(RemoveParticipant);
                             logger.LogInformation($"Removing participant Response : {removeParticipantResponse.Value.ToString}");
                         }
+                    }
+
+                    if(sourceParticipant != null)
+                    {
+                        logger.LogInformation($"going to remove participant : {sourceParticipant.RawId}");
+                        var removeParticipantResponse = await callConnection.RemoveParticipantAsync(sourceParticipant);
+                        logger.LogInformation($"Removing participant Response : {removeParticipantResponse.Value.ToString}");
                     }
                 }
             }
