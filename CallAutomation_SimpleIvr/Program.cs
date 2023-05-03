@@ -75,6 +75,12 @@ app.MapPost("/api/incomingCall", async (
             else
             {
                 AnswerCallResult answerCallResult = await client.AnswerCallAsync(incomingCallContext, callbackUri);
+                logger.LogInformation($"answerCall Response ------->  source callerId {answerCallResult.CallConnectionProperties.SourceIdentity.RawId}");
+                logger.LogInformation($"targets ------->");
+                foreach (var target in answerCallResult.CallConnectionProperties.Targets)
+                {
+                    logger.LogInformation($"{target.RawId}");
+                }
             }
         }
     }
@@ -108,6 +114,14 @@ app.MapPost("/api/calls/{contextId}", async (
 
         var callConnection = client.GetCallConnection(@event.CallConnectionId);
         var callMedia = callConnection?.GetCallMedia();
+
+        var properties = callConnection.GetCallConnectionProperties();
+        logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceIdentity.RawId}");
+        logger.LogInformation($"targets ------->");
+        foreach (var target in properties.Value.Targets)
+        {
+            logger.LogInformation($"{target.RawId}");
+        }
 
         if (callConnection == null || callMedia == null)
         {
