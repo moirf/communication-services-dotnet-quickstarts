@@ -97,10 +97,10 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
     {
         logger.LogInformation($"Event received: {JsonConvert.SerializeObject(cloudEvent)}");
 
-        CallAutomationEventBase @event = CallAutomationEventParser.Parse(cloudEvent);
+        CallAutomationEventData @event = CallAutomationEventParser.Parse(cloudEvent);
         var callConnection = callAutomationClient.GetCallConnection(@event.CallConnectionId);
         var callConnectionMedia = callConnection.GetCallMedia();
-        if (@event is CallConnected)
+        if (@event is CallConnectedEventData)
         {
             addedParticipantsCount = 0;
             declineParticipantsCount = 0;
@@ -119,11 +119,11 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             //Start recognition 
             await callConnectionMedia.StartRecognizingAsync(recognizeOptions);
         }
-        if (@event is RecognizeCompleted { OperationContext: "AppointmentReminderMenu" })
+        if (@event is RecognizeCompletedEventData { OperationContext: "AppointmentReminderMenu" })
         {
             // Play audio once recognition is completed sucessfully
             logger.LogInformation($"RecognizeCompleted event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
-            var recognizeCompletedEvent = (RecognizeCompleted)@event;
+            var recognizeCompletedEvent = (RecognizeCompletedEventData)@event;
             DtmfTone toneDetected = ((DtmfResult)recognizeCompletedEvent.RecognizeResult).Tones[0];
             if (toneDetected == DtmfTone.Three)
             {
@@ -138,7 +138,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                 await callConnectionMedia.PlayToAllAsync(playSource, new PlayOptions { OperationContext = "ResponseToDtmf", Loop = false });
             }
         }
-        if (@event is PlayCompleted { OperationContext: "AgentConnect" })
+        if (@event is PlayCompletedEventData { OperationContext: "AgentConnect" })
         {
             foreach (var Participantindentity in addedParticipants)
             {
@@ -167,10 +167,10 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             }
         }
 
-        if (@event is RecognizeFailed { OperationContext: "AppointmentReminderMenu" })
+        if (@event is RecognizeFailedEventData { OperationContext: "AppointmentReminderMenu" })
         {
             logger.LogInformation($"RecognizeFailed event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
-            var recognizeFailedEvent = (RecognizeFailed)@event;
+            var recognizeFailedEvent = (RecognizeFailedEventData)@event;
 
             // Check for time out, and then play audio message
             if (recognizeFailedEvent.ReasonCode.Equals(ReasonCode.RecognizeInitialSilenceTimedOut))
@@ -183,17 +183,17 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             }
         }
 
-        if (@event is PlayCompleted { OperationContext: "ResponseToDtmf" })
+        if (@event is PlayCompletedEventData { OperationContext: "ResponseToDtmf" })
         {
             logger.LogInformation($"PlayCompleted event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
             await callConnection.HangUpAsync(forEveryone: true);
         }
-        if (@event is PlayFailed { OperationContext: "ResponseToDtmf" })
+        if (@event is PlayFailedEventData { OperationContext: "ResponseToDtmf" })
         {
             logger.LogInformation($"PlayFailed event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
             await callConnection.HangUpAsync(forEveryone: true);
         }
-        if (@event is AddParticipantSucceeded addParticipantSucceeded)
+        if (@event is AddParticipantSucceededEventData addParticipantSucceeded)
         {
             addedParticipantsCount++;
             logger.LogInformation($"participant added ---> {addParticipantSucceeded.Participant.RawId}");
@@ -202,7 +202,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                 await PerformHangUp(callConnection);
             }
         }
-        if (@event is AddParticipantFailed failedParticipant)
+        if (@event is AddParticipantFailedEventData failedParticipant)
         {
             declineParticipantsCount++;
             logger.LogInformation($"Failed participant Reason -------> {failedParticipant.ResultInformation?.Message}");
@@ -211,17 +211,17 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                 await PerformHangUp(callConnection);
             }
         }
-        if (@event is RemoveParticipantSucceeded)
+        if (@event is RemoveParticipantSucceededEventData)
         {
-            RemoveParticipantSucceeded RemoveParticipantSucceeded = (RemoveParticipantSucceeded)@event;
+            RemoveParticipantSucceededEventData RemoveParticipantSucceeded = (RemoveParticipantSucceededEventData)@event;
             logger.LogInformation($"Remove Participant Succeeded RawId : {RemoveParticipantSucceeded.Participant.RawId}");
         }
-        if (@event is RemoveParticipantFailed)
+        if (@event is RemoveParticipantFailedEventData)
         {
-            RemoveParticipantFailed removeParticipantFailed = (RemoveParticipantFailed)@event;
+            RemoveParticipantFailedEventData removeParticipantFailed = (RemoveParticipantFailedEventData)@event;
             logger.LogInformation($"Remove participant failed RawId:{removeParticipantFailed.Participant.RawId}");
         }
-        if (@event is ParticipantsUpdated updatedParticipantEvent)
+        if (@event is ParticipantsUpdatedEventData updatedParticipantEvent)
         {
             logger.LogInformation($"Participant Updated Event Recieved");
             logger.LogInformation($"------- Updated Participant : {updatedParticipantEvent.Participants.Count} -------- ");
