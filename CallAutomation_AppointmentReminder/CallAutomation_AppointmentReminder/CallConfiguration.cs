@@ -29,6 +29,11 @@ namespace CallAutomation_AppointmentReminder
         public string SourcePhoneNumber { get; set; }
 
         /// <summary>
+        /// The phone number to add Participant to the call. 
+        /// </summary>
+        public string AddParticipantNumber { get; set; }
+
+        /// <summary>
         /// The base url of the applicaiton.
         /// </summary>
         public string AppBaseUri { get; set; }
@@ -59,6 +64,21 @@ namespace CallAutomation_AppointmentReminder
         public string AppointmentCancelledAudio { get; set; }
 
         /// <summary>
+        /// Appointment to add AgentAudio audio file route
+        /// </summary>
+        public string AgentAudio { get; set; }
+
+        /// <summary>
+        /// Appointment to AddParticipant audio file route
+        /// </summary>
+        public string AddParticipant { get; set; }
+
+        /// <summary>
+        /// Appointment to remove RemoveParticipant audio file route
+        /// </summary>
+        public string RemoveParticipant { get; set; }
+
+        /// <summary>
         /// Invalid input audio file route
         /// </summary>
         public string InvalidInputAudio { get; set; }
@@ -67,5 +87,10 @@ namespace CallAutomation_AppointmentReminder
         /// Time out audio file route
         /// </summary>
         public string TimedoutAudio { get; set; }
+
+        /// <summary>
+        /// Scenario for hanging up the call
+        /// </summary>
+        public int HangUpScenarios { get; set; }
     }
 }
