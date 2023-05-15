@@ -129,13 +129,13 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             {
                 var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration);
                 // Play audio for dtmf response
-                await callConnectionMedia.PlayToAllAsync(playSource, new PlayOptions { OperationContext = "AgentConnect", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "AgentConnect", Loop = false });
             }
             else
             {
                 var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration);
                 // Play audio for dtmf response
-                await callConnectionMedia.PlayToAllAsync(playSource, new PlayOptions { OperationContext = "ResponseToDtmf", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
             }
         }
         if (@event is PlayCompleted { OperationContext: "AgentConnect" })
@@ -158,7 +158,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                     var addParticipantOptions = new AddParticipantOptions(callInvite);
                     var response = await callConnection.AddParticipantAsync(addParticipantOptions);
                     var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant));
-                    await callConnectionMedia.PlayToAllAsync(playSource, new PlayOptions { OperationContext = "addParticipant", Loop = false });
+                    await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "addParticipant", Loop = false });
                     await Task.Delay(TimeSpan.FromSeconds(10));
 
                     logger.LogInformation($"Add participant call : {response.Value.Participant}" + $"  Status of call :{response.GetRawResponse().Status}"
@@ -173,13 +173,13 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             var recognizeFailedEvent = (RecognizeFailed)@event;
 
             // Check for time out, and then play audio message
-            if (recognizeFailedEvent.ReasonCode.Equals(ReasonCode.RecognizeInitialSilenceTimedOut))
+            if (recognizeFailedEvent.ReasonCode.Equals(MediaEventReasonCode.RecognizeInitialSilenceTimedOut))
             {
                 logger.LogInformation($"Recognition timed out for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
                 var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.TimedoutAudio));
 
                 //Play audio for time out
-                await callConnectionMedia.PlayToAllAsync(playSource, new PlayOptions { OperationContext = "ResponseToDtmf", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
             }
         }
 
@@ -241,9 +241,18 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
         logger.LogInformation($"-------Participant List  : {participantlistResponse.Value.Count} ----- ");
         foreach (var participant in participantlistResponse.Value)
         {
-            logger.LogInformation($"{participant.Identifier.RawId}");
-            //var response = callConnection.GetParticipant(participant.Identifier.RawId);
-            //logger.LogInformation($"-------get participnat response  : {response} ----- ");
+            try
+            {
+                logger.LogInformation($"{participant.Identifier.RawId}");
+                var response = callConnection.GetParticipant(participant.Identifier);
+                logger.LogInformation($"-------get participnat response  : {response} ----- ");
+            }
+            catch(Exception ex)
+            {
+                logger.LogInformation($"------Error In GetParticipant() for participnat : {participant.Identifier.RawId} " +
+                    $"-----> {ex.Message}");
+            }
+            
         }
 
         int hangupScenario = callConfiguration.Value.HangUpScenarios;
