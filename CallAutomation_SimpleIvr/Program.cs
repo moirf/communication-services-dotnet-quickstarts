@@ -313,8 +313,19 @@ app.MapPost("/api/calls/{contextId}", async (
             logger.LogInformation("-------Participant List----- ");
             foreach (var participant in participantlistResponse.Value)
             {
-                logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId}");
+                try
+                {
+                    logger.LogInformation($"{participant.Identifier.RawId}");
+                    var response = callConnection.GetParticipant(participant.Identifier);
+                    logger.LogInformation($"-------get participnat response  : {response} ----- ");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogInformation($"------Error In GetParticipant() for participnat : {participant.Identifier.RawId} " +
+                        $"-----> {ex.Message}");
+                }
             }
+
             logger.LogInformation($"Number of Participants : {participantlistResponse.Value.Count}");
 
             int hangupScenario = Convert.ToInt32(builder.Configuration["HangUpScenarios"]);
