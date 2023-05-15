@@ -93,7 +93,7 @@ app.MapPost("/api/calls/{contextId}", async (
     [Required] string callerId,
     ILogger<Program> logger) =>
 {
-    var audioPlayOptions = new PlayOptions() { OperationContext = "SimpleIVR", Loop = false };
+    //var audioPlayOptions = new PlayToAllOptions() { OperationContext = "SimpleIVR", Loop = false };
 
     if (cloudEvents == null)
     {
@@ -154,24 +154,26 @@ app.MapPost("/api/calls/{contextId}", async (
             if (collectedTones.Tones[0] == DtmfTone.One)
             {
                 PlaySource salesAudio = new FileSource(new Uri(baseUri + builder.Configuration["SalesAudio"]));
-                await callMedia.PlayToAllAsync(salesAudio, audioPlayOptions);
+                var audioPlayOptions = new PlayToAllOptions(salesAudio) { OperationContext = "SimpleIVR", Loop = false };
+                await callMedia.PlayToAllAsync(audioPlayOptions);
             }
             else if (collectedTones.Tones[0] == DtmfTone.Two)
             {
                 PlaySource marketingAudio = new FileSource(new Uri(baseUri + builder.Configuration["MarketingAudio"]));
-                await callMedia.PlayToAllAsync(marketingAudio, audioPlayOptions);
+                await callMedia.PlayToAllAsync(new PlayToAllOptions(marketingAudio) 
+                { OperationContext = "SimpleIVR", Loop = false });
             }
             else if (collectedTones.Tones[0] == DtmfTone.Three)
             {
                 PlaySource customerCareAudio = new FileSource(new Uri(baseUri + builder.Configuration["CustomerCareAudio"]));
-                audioPlayOptions.OperationContext = "CustomerCare";
-                await callMedia.PlayToAllAsync(customerCareAudio, audioPlayOptions);
+                await callMedia.PlayToAllAsync(new PlayToAllOptions(customerCareAudio)
+                { OperationContext = "CustomerCare", Loop = false });
             }
             else if (collectedTones.Tones[0] == DtmfTone.Four)
             {
                 PlaySource agentAudio = new FileSource(new Uri(baseUri + builder.Configuration["AgentAudio"]));
-                audioPlayOptions.OperationContext = "AgentConnect";
-                await callMedia.PlayToAllAsync(agentAudio, audioPlayOptions);
+                await callMedia.PlayToAllAsync(new PlayToAllOptions(agentAudio)
+                { OperationContext = "AgentConnect", Loop = false });
             }
             else if (collectedTones.Tones[0] == DtmfTone.Five)
             {
@@ -182,13 +184,16 @@ app.MapPost("/api/calls/{contextId}", async (
             else
             {
                 PlaySource invalidAudio = new FileSource(new Uri(baseUri + builder.Configuration["InvalidAudio"]));
-                await callMedia.PlayToAllAsync(invalidAudio, audioPlayOptions);
+                await callMedia.PlayToAllAsync(new PlayToAllOptions(invalidAudio)
+                { OperationContext = "SimpleIVR", Loop = false });
             }
         }
         if (@event is RecognizeFailed { OperationContext: "MainMenu" })
         {
             // play invalid audio
-            await callMedia.PlayToAllAsync(new FileSource(new Uri(baseUri + builder.Configuration["InvalidAudio"])), audioPlayOptions);
+            PlaySource invalidAudio = new FileSource(new Uri(baseUri + builder.Configuration["InvalidAudio"]));
+            await callMedia.PlayToAllAsync(new PlayToAllOptions(invalidAudio)
+            { OperationContext = "SimpleIVR", Loop = false });
         }
         if (@event is PlayCompleted)
         {
@@ -214,8 +219,7 @@ app.MapPost("/api/calls/{contextId}", async (
                     var response = await callConnection.AddParticipantAsync(addParticipantOptions);
                     //var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant));
                     PlaySource agentAudio = new FileSource(new Uri(baseUri + builder.Configuration["AddParticipant"]));
-                    audioPlayOptions.OperationContext = "addParticipant";
-                    await callMedia.PlayToAllAsync(agentAudio, audioPlayOptions);
+                    await callMedia.PlayToAllAsync(new PlayToAllOptions(agentAudio) { OperationContext = "addParticipant", Loop = false });
 
                     TimeSpan InterToneTimeout = TimeSpan.FromSeconds(20);
                     TimeSpan InitialSilenceTimeout = TimeSpan.FromSeconds(10);
@@ -228,16 +232,16 @@ app.MapPost("/api/calls/{contextId}", async (
             {
                 var customerCareIdentity = builder.Configuration["customerCareIdentity"];
                 var identifierKind = GetIdentifierKind(customerCareIdentity);
-                CallInvite? callInvite = null;
+                CommunicationIdentifier? callInvite = null;
                 if (!string.IsNullOrEmpty(customerCareIdentity))
                 {
                     if (identifierKind == CommunicationIdentifierKind.PhoneIdentity)
                     {
-                        callInvite = new CallInvite(new PhoneNumberIdentifier(customerCareIdentity), new PhoneNumberIdentifier(builder.Configuration["ACSAlternatePhoneNumber"]));
+                        callInvite = new PhoneNumberIdentifier(customerCareIdentity);
                     }
                     if (identifierKind == CommunicationIdentifierKind.UserIdentity)
                     {
-                        callInvite = new CallInvite(new CommunicationUserIdentifier(customerCareIdentity));
+                        callInvite = new CommunicationUserIdentifier(customerCareIdentity);
                     }
                 }
                 var transferResponse = await callConnection.TransferCallToParticipantAsync(callInvite);
