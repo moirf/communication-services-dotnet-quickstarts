@@ -115,14 +115,6 @@ app.MapPost("/api/calls/{contextId}", async (
         var callConnection = client.GetCallConnection(@event.CallConnectionId);
         var callMedia = callConnection?.GetCallMedia();
 
-        var properties = callConnection.GetCallConnectionProperties();
-        logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceIdentity.RawId}");
-        logger.LogInformation($"targets ------->");
-        foreach (var target in properties.Value.Targets)
-        {
-            logger.LogInformation($"{target.RawId}");
-        }
-
         if (callConnection == null || callMedia == null)
         {
             return Results.BadRequest($"Call objects failed to get for connection id {@event.CallConnectionId}.");
@@ -134,6 +126,16 @@ app.MapPost("/api/calls/{contextId}", async (
             declineParticipantsCount = 0;
 
             logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
+
+            var properties = callConnection.GetCallConnectionProperties();
+            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceIdentity.RawId}," +
+                $"CallConnection State : {properties.Value.CallConnectionState}");
+            logger.LogInformation($"targets ------->");
+            foreach (var target in properties.Value.Targets)
+            {
+                logger.LogInformation($"{target.RawId}");
+            }
+
             // Start recognize prompt - play audio and recognize 1-digit DTMF input
             var recognizeOptions =
                 new CallMediaRecognizeDtmfOptions(CommunicationIdentifier.FromRawId(callerId), maxTonesToCollect: 1)
