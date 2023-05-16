@@ -5,8 +5,8 @@ using CallAutomation.Scenarios.Interfaces;
 namespace CallAutomation.Scenarios
 {
     public class RecordingHandler :
-        IEventActionEventHandler<StartRecordingEvent>, IEventActionEventHandler<StopRecordingEvent>,
-        IEventActionEventHandler<RecordingFileStatusUpdatedEvent>, IEventActionEventHandler<PauseRecordingEvent>, IEventActionEventHandler<ResumeRecordingEvent>
+        IEventActionEventHandler<StartRecordingEvent>, IEventActionEventHandler<StopRecordingEvent>, IEventActionEventHandler<GetRecordingStateEvent>,
+         IEventActionEventHandler<PauseRecordingEvent>, IEventActionEventHandler<ResumeRecordingEvent>
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<CallEventHandler> _logger;
@@ -33,11 +33,11 @@ namespace CallAutomation.Scenarios
             try
             {
                 var serverCallId = startRecordingEvent.serverCallId ?? throw new ArgumentNullException($"ServerCallId is null: {startRecordingEvent}");
-                
+
                 var startRecordingResponse = await _callAutomationService.StartRecordingAsync(serverCallId);
                 Logger.LogInformation($"StartRecordingAsync response -- >  {startRecordingResponse.RecordingState}, Recording Id: {startRecordingResponse.RecordingId}");
                 var recordingId = startRecordingResponse.RecordingId;
-                
+
                 _callContextService.SetRecordingContext(serverCallId, new RecordingContext() { StartTime = DateTime.UtcNow, RecordingId = recordingId });
 
             }
@@ -52,7 +52,7 @@ namespace CallAutomation.Scenarios
         {
             try
             {
-                _logger.LogInformation("IncomingCallEvent received");
+                _logger.LogInformation("StopRecordingAsync received");
                 string serverCallId = StopRecordingEvent.serverCallId;
                 string recordingId = StopRecordingEvent.recordingId;
                 if (!string.IsNullOrEmpty(serverCallId))
@@ -75,14 +75,8 @@ namespace CallAutomation.Scenarios
                     {
                         recordingData.Remove(serverCallId);
                     }
-                    // return Ok();
-                }
-                else
-                {
-                    // return BadRequest(new { Message = "serverCallId is invalid" });
-                }
 
-
+                }
             }
             catch (Exception ex)
             {
@@ -114,14 +108,7 @@ namespace CallAutomation.Scenarios
 
                     var PauseRecording = await _callAutomationService.PauseRecordingAsync(recordingId);
                     Logger.LogInformation($"PauseRecordingAsync response -- > {PauseRecording}");
-
-                    // return Ok();
                 }
-                else
-                {
-                    // return BadRequest(new { Message = "serverCallId is invalid" });
-                }
-
 
             }
             catch (Exception ex)
@@ -153,14 +140,7 @@ namespace CallAutomation.Scenarios
 
                     var ResumeRecording = await _callAutomationService.ResumeRecordingAsync(recordingId);
                     Logger.LogInformation($"ResumeRecordingAsync response -- > {ResumeRecording}");
-
-                    // return Ok();
                 }
-                else
-                {
-                    // return BadRequest(new { Message = "serverCallId is invalid" });
-                }
-
 
             }
             catch (Exception ex)
@@ -170,33 +150,35 @@ namespace CallAutomation.Scenarios
             }
         }
 
-        public async Task Handle(RecordingFileStatusUpdatedEvent recordingFileStatusUpdatedEvent)
+        public async Task Handle(GetRecordingStateEvent getRecordingStateEvent)
         {
             try
             {
-                var eventData = recordingFileStatusUpdatedEvent;
+                _logger.LogInformation("GetRecordingStateEvent received");
+                string serverCallId = getRecordingStateEvent.serverCallId;
+                string recordingId = getRecordingStateEvent.recordingId;
+                if (!string.IsNullOrEmpty(serverCallId))
+                {
+                    if (string.IsNullOrEmpty(recordingId))
+                    {
+                        recordingId = recordingData[serverCallId];
+                    }
+                    else
+                    {
+                        if (!recordingData.ContainsKey(serverCallId))
+                        {
+                            recordingData[serverCallId] = recordingId;
+                        }
+                    }
 
-                Logger.LogInformation("Microsoft.Communication.RecordingFileStatusUpdated response  -- >" + eventData);
+                    var PauseRecording = await _callAutomationService.GetRecordingStateAsync(recordingId);
+                    Logger.LogInformation($"PauseRecordingAsync response -- > {PauseRecording}");
 
-                Logger.LogInformation("Start processing metadata -- >");
-
-                await _callAutomationService.ProcessFile(eventData.RecordingStorageInfo.RecordingChunks[0].MetadataLocation,
-                    eventData.RecordingStorageInfo.RecordingChunks[0].DocumentId,
-                    FileFormat.Json,
-                    FileDownloadType.Metadata);
-
-                Logger.LogInformation("Start processing recorded media -- >");
-
-                await _callAutomationService.ProcessFile(eventData.RecordingStorageInfo.RecordingChunks[0].ContentLocation,
-                    eventData.RecordingStorageInfo.RecordingChunks[0].DocumentId,
-                    string.IsNullOrWhiteSpace(recFileFormat) ? FileFormat.Mp4 : recFileFormat,
-                    FileDownloadType.Recording);
-
-
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Get Recording File failed unexpectedly");
+                _logger.LogError(ex, "Get Recording state event failed unexpectedly");
                 throw;
             }
         }

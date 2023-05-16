@@ -1,6 +1,7 @@
 ﻿// © Microsoft Corporation. All rights reserved.
 
 using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.SystemEvents;
 using CallAutomation.Scenarios.Handlers;
 using CallAutomation.Scenarios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -13,12 +14,12 @@ namespace CallAutomation.Scenarios.Controllers
         private readonly ILogger _logger;
         private readonly EventConverter _eventConverter;
         private readonly IEventGridEventHandler<IncomingCallEvent> _incomingCallEventHandler;
-        private readonly IEventGridEventHandler<RecordingFileStatusUpdatedEvent> _recordingFileStatusUpdatedEventHandler;
+        private readonly IEventGridEventHandler<AcsRecordingFileStatusUpdatedEventData> _recordingFileStatusUpdatedEventHandler;
 
         public EventsController(ILogger<EventsController> logger,
             EventConverter eventConverter,
             IEventGridEventHandler<IncomingCallEvent> incomingCallEventHandler,
-            IEventGridEventHandler<RecordingFileStatusUpdatedEvent> recordingFileStatusUpdatedEventHandler)
+            IEventGridEventHandler<AcsRecordingFileStatusUpdatedEventData> recordingFileStatusUpdatedEventHandler)
 
         {
             _logger = logger;
@@ -54,7 +55,7 @@ namespace CallAutomation.Scenarios.Controllers
                             await _incomingCallEventHandler.Handle(incomingCallEvent);
                             break;
 
-                        case RecordingFileStatusUpdatedEvent recordingFileStatusUpdatedEvent:
+                        case AcsRecordingFileStatusUpdatedEventData recordingFileStatusUpdatedEvent:
                             await _recordingFileStatusUpdatedEventHandler.Handle(recordingFileStatusUpdatedEvent);
                             break;
 
