@@ -31,7 +31,7 @@ namespace CallAutomation.Scenarios
             services.AddSingleton<IEventActionEventHandler<OutboundCallEvent>, CallEventHandler>();
             services.AddSingleton<IEventActionEventHandler<StartRecordingEvent>, RecordingHandler>();
             services.AddSingleton<IEventActionEventHandler<StopRecordingEvent>, RecordingHandler>();
-            services.AddSingleton<IEventActionEventHandler<GetRecordingStateEvent>, RecordingHandler>();
+            services.AddSingleton<IEventActionEventHandler<RecordingStateEvent>, RecordingHandler>();
             services.AddSingleton<IEventActionEventHandler<PauseRecordingEvent>, RecordingHandler>();
             services.AddSingleton<IEventActionEventHandler<ResumeRecordingEvent>, RecordingHandler>();
             services.AddSingleton<EventConverter>();

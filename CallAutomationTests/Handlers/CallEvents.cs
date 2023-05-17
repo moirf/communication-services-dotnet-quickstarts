@@ -32,22 +32,18 @@ namespace CallAutomation.Scenarios.Handlers
     }
     public class StopRecordingEvent
     {
-        public string? serverCallId { get; set; }
-        public string? recordingId { get; set; }
+       public string? recordingId { get; set; }
     }
-    public class GetRecordingStateEvent
+    public class RecordingStateEvent
     {
-        public string? serverCallId { get; set; }
         public string? recordingId { get; set; }
     }
     public class PauseRecordingEvent
     {
-        public string? serverCallId { get; set; }
         public string? recordingId { get; set; }
     }
     public class ResumeRecordingEvent
     {
-        public string? serverCallId { get; set; }
         public string? recordingId { get; set; }
     }
 

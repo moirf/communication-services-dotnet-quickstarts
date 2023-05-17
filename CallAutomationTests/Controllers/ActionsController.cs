@@ -12,7 +12,7 @@ namespace CallAutomation.Scenarios.Controllers
         private readonly IEventActionEventHandler<OutboundCallEvent> _outboundCallActionHandler;
         private readonly IEventActionEventHandler<StartRecordingEvent> _startRecordingActionHandler;
         private readonly IEventActionEventHandler<StopRecordingEvent> _stopRecordingActionHandler;
-        private readonly IEventActionEventHandler<GetRecordingStateEvent> _getRecordingStateActionHandler;
+        private readonly IEventActionEventHandler<RecordingStateEvent> _getRecordingStateActionHandler;
         private readonly IEventActionEventHandler<PauseRecordingEvent> _pauseRecordingActionHandler;
         private readonly IEventActionEventHandler<ResumeRecordingEvent> _resumeRecordingActionHandler;
 
@@ -21,7 +21,7 @@ namespace CallAutomation.Scenarios.Controllers
             IEventActionEventHandler<OutboundCallEvent> outboundCallActionHandler,
             IEventActionEventHandler<StartRecordingEvent> startRecordingActionHandler,
             IEventActionEventHandler<StopRecordingEvent> stopRecordingActionHandler,
-            IEventActionEventHandler<GetRecordingStateEvent> getRecordingStateActionHandler,
+            IEventActionEventHandler<RecordingStateEvent> getRecordingStateActionHandler,
             IEventActionEventHandler<PauseRecordingEvent> pauseRecordingActionHandler,
             IEventActionEventHandler<ResumeRecordingEvent> resumeRecordingActionHandler)
 
@@ -70,9 +70,9 @@ namespace CallAutomation.Scenarios.Controllers
         }
 
         [HttpPost("getRecordingState", Name = "GetRecording_State")]
-        public async Task<ActionResult> getRecordingFile([FromQuery] GetRecordingStateEvent getRecordingStateEvent)
+        public async Task<ActionResult> getRecordingFile([FromQuery] RecordingStateEvent recordingStateEvent)
         {
-            var response = _getRecordingStateActionHandler.Handle(getRecordingStateEvent);
+            var response = _getRecordingStateActionHandler.Handle(recordingStateEvent);
             return new OkResult();
         }
 

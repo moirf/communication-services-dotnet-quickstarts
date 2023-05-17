@@ -5,8 +5,11 @@ using CallAutomation.Scenarios.Interfaces;
 namespace CallAutomation.Scenarios
 {
     public class RecordingHandler :
-        IEventActionEventHandler<StartRecordingEvent>, IEventActionEventHandler<StopRecordingEvent>, IEventActionEventHandler<GetRecordingStateEvent>,
-         IEventActionEventHandler<PauseRecordingEvent>, IEventActionEventHandler<ResumeRecordingEvent>
+        IEventActionEventHandler<StartRecordingEvent>,
+        IEventActionEventHandler<StopRecordingEvent>,
+        IEventActionEventHandler<RecordingStateEvent>,
+        IEventActionEventHandler<PauseRecordingEvent>,
+        IEventActionEventHandler<ResumeRecordingEvent>
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<CallEventHandler> _logger;
@@ -48,35 +51,15 @@ namespace CallAutomation.Scenarios
             }
         }
 
-        public async Task Handle(StopRecordingEvent StopRecordingEvent)
+        public async Task Handle(StopRecordingEvent stopRecordingEvent)
         {
             try
             {
-                _logger.LogInformation("StopRecordingAsync received");
-                string serverCallId = StopRecordingEvent.serverCallId;
-                string recordingId = StopRecordingEvent.recordingId;
-                if (!string.IsNullOrEmpty(serverCallId))
-                {
-                    if (string.IsNullOrEmpty(recordingId))
-                    {
-                        recordingId = recordingData[serverCallId];
-                    }
-                    else
-                    {
-                        if (!recordingData.ContainsKey(serverCallId))
-                        {
-                            recordingData[serverCallId] = recordingId;
-                        }
-                    }
-
-                    var stopRecording = await _callAutomationService.StopRecordingAsync(recordingId);
-                    Logger.LogInformation($"StopRecordingAsync response -- > {stopRecording}");
-                    if (recordingData.ContainsKey(serverCallId))
-                    {
-                        recordingData.Remove(serverCallId);
-                    }
-
-                }
+                _logger.LogInformation("StopRecordingAsync received");               
+                string recordingId = stopRecordingEvent.recordingId;           
+                    
+                        var stopRecording = await _callAutomationService.StopRecordingAsync(recordingId);
+                        Logger.LogInformation($"StopRecordingAsync response -- > {stopRecording}");                   
             }
             catch (Exception ex)
             {
@@ -89,27 +72,12 @@ namespace CallAutomation.Scenarios
         {
             try
             {
-                _logger.LogInformation("pauseRecordingEvent received");
-                string serverCallId = pauseRecordingEvent.serverCallId;
+                _logger.LogInformation("pauseRecordingEvent received");               
                 string recordingId = pauseRecordingEvent.recordingId;
-                if (!string.IsNullOrEmpty(serverCallId))
-                {
-                    if (string.IsNullOrEmpty(recordingId))
-                    {
-                        recordingId = recordingData[serverCallId];
-                    }
-                    else
-                    {
-                        if (!recordingData.ContainsKey(serverCallId))
-                        {
-                            recordingData[serverCallId] = recordingId;
-                        }
-                    }
-
-                    var PauseRecording = await _callAutomationService.PauseRecordingAsync(recordingId);
-                    Logger.LogInformation($"PauseRecordingAsync response -- > {PauseRecording}");
-                }
-
+                
+                        var PauseRecording = await _callAutomationService.PauseRecordingAsync(recordingId);
+                        Logger.LogInformation($"PauseRecordingAsync response -- > {PauseRecording}");
+                     
             }
             catch (Exception ex)
             {
@@ -121,27 +89,11 @@ namespace CallAutomation.Scenarios
         {
             try
             {
-                _logger.LogInformation("ResumeRecordingEvent received");
-                string serverCallId = resumeRecordingEvent.serverCallId;
+                _logger.LogInformation("ResumeRecordingEvent received");               
                 string recordingId = resumeRecordingEvent.recordingId;
-                if (!string.IsNullOrEmpty(serverCallId))
-                {
-                    if (string.IsNullOrEmpty(recordingId))
-                    {
-                        recordingId = recordingData[serverCallId];
-                    }
-                    else
-                    {
-                        if (!recordingData.ContainsKey(serverCallId))
-                        {
-                            recordingData[serverCallId] = recordingId;
-                        }
-                    }
-
-                    var ResumeRecording = await _callAutomationService.ResumeRecordingAsync(recordingId);
-                    Logger.LogInformation($"ResumeRecordingAsync response -- > {ResumeRecording}");
-                }
-
+                        var ResumeRecording = await _callAutomationService.ResumeRecordingAsync(recordingId);
+                        Logger.LogInformation($"ResumeRecordingAsync response -- > {ResumeRecording}");
+                    
             }
             catch (Exception ex)
             {
@@ -150,31 +102,15 @@ namespace CallAutomation.Scenarios
             }
         }
 
-        public async Task Handle(GetRecordingStateEvent getRecordingStateEvent)
+        public async Task Handle(RecordingStateEvent recordingStateEvent)
         {
             try
             {
-                _logger.LogInformation("GetRecordingStateEvent received");
-                string serverCallId = getRecordingStateEvent.serverCallId;
-                string recordingId = getRecordingStateEvent.recordingId;
-                if (!string.IsNullOrEmpty(serverCallId))
-                {
-                    if (string.IsNullOrEmpty(recordingId))
-                    {
-                        recordingId = recordingData[serverCallId];
-                    }
-                    else
-                    {
-                        if (!recordingData.ContainsKey(serverCallId))
-                        {
-                            recordingData[serverCallId] = recordingId;
-                        }
-                    }
-
-                    var PauseRecording = await _callAutomationService.GetRecordingStateAsync(recordingId);
-                    Logger.LogInformation($"PauseRecordingAsync response -- > {PauseRecording}");
-
-                }
+                _logger.LogInformation("GetRecordingStateEvent received");               
+                string recordingId = recordingStateEvent.recordingId; 
+                        var PauseRecording = await _callAutomationService.GetRecordingStateAsync(recordingId);
+                        Logger.LogInformation($"PauseRecordingAsync response -- > {PauseRecording}");
+                                    
             }
             catch (Exception ex)
             {

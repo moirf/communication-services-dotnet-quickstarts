@@ -41,11 +41,12 @@ namespace CallAutomation.Scenarios.Controllers
                 return new OkObjectResult(response);
             }
 
-            _logger.LogDebug($"Received {eventGridEvents.Length} EventGridEvents");
+           // _logger.LogDebug($"Received {eventGridEvents.Length} EventGridEvents");
             foreach (var eventGridEvent in eventGridEvents)
             {
                 try
                 {
+                    _logger.LogDebug($"Received {eventGridEvents.Length} EventGridEvents");
                     var eventData = _eventConverter.Convert(eventGridEvent);
                     if (eventData == null) continue;
 
