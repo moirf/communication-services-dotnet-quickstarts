@@ -63,9 +63,9 @@ namespace CallAutomation.Scenarios.Controllers
             return new OkResult();
         }
         [HttpPost("stoprecording", Name = "Stop_Recording")]
-        public async Task<ActionResult> StopRecording([FromQuery] StopRecordingEvent StopRecordingEvent)
+        public async Task<ActionResult> StopRecording([FromQuery] StopRecordingEvent stopRecordingEvent)
         {
-            var response = _stopRecordingActionHandler.Handle(StopRecordingEvent);
+            var response = _stopRecordingActionHandler.Handle(stopRecordingEvent);
             return new OkResult();
         }
 
