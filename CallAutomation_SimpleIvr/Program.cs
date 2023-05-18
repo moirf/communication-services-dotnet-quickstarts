@@ -36,6 +36,7 @@ var target = builder.Configuration["ParticipantToAdd"];
 string sourceCallerID = null;
 var Participants = target.Split(';');
 var app = builder.Build();
+string caSourceId = null;
 app.MapPost("/api/incomingCall", async (
     [FromBody] EventGridEvent[] eventGridEvents,
     ILogger<Program> logger) =>
@@ -62,7 +63,7 @@ app.MapPost("/api/incomingCall", async (
         var incomingCallContext = (string)jsonObject["incomingCallContext"];
         var callbackUri = new Uri(baseUri + $"/api/calls/{Guid.NewGuid()}?callerId={sourceCallerID}");
 
-        string caSourceId = builder.Configuration["TargetId"];
+        caSourceId = builder.Configuration["TargetId"];
         var rejectcall = Convert.ToBoolean(builder.Configuration["declinecall"]);
 
         if (caSourceId.Contains(targetId))
@@ -356,13 +357,15 @@ app.MapPost("/api/calls/{contextId}", async (
                     CommunicationIdentifier sourceParticipant = null;
                     foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                     {
-                        if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
-                                target.Contains(participantToRemove.Identifier.ToString()) ||
-                                (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(sourceCallerID)))
-                        {
-                            if (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(sourceCallerID))
+                        if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()))                        
+                         {
+                            if (participantToRemove.Identifier.RawId.Contains(sourceCallerID) )
                             {
                                 sourceParticipant = participantToRemove.Identifier;
+                            }
+                            else if (participantToRemove.Identifier.RawId.Contains(caSourceId))
+                            {
+                                caSourceId = participantToRemove.Identifier.RawId;
                             }
                             else
                             {
@@ -373,7 +376,7 @@ app.MapPost("/api/calls/{contextId}", async (
                             }
                         }
                     }
-                    if(sourceParticipant != null)
+                    if(hangupScenario == 4 && sourceParticipant != null)
                     {
                         logger.LogInformation($"going to remove participant : {sourceParticipant.RawId}");
                         var removeParticipantResponse = await callConnection.RemoveParticipantAsync(sourceParticipant);
