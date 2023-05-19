@@ -25,6 +25,7 @@ var target = callConfigurationSection["AddParticipantNumber"];
 var addedParticipants = target.Split(';');
 int addedParticipantsCount = 0;
 int declineParticipantsCount = 0;
+var SourceId = "";
 
 CommunicationIdentifierKind GetIdentifierKind(string participantnumber)
 {
@@ -63,6 +64,7 @@ app.MapPost("/api/call", async ([Required] string targetNo, CallAutomationClient
                 var response = await callAutomationClient.CreateCallAsync(createCallOption).ConfigureAwait(false);
                 logger.LogInformation($"Reponse from create call: {response.GetRawResponse()}" +
                     $"CallConnection Id : {response.Value.CallConnection.CallConnectionId}");
+                SourceId = response.Value.CallConnectionProperties.SourceIdentity.RawId;
             }
         }
     }
@@ -291,13 +293,15 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                 CommunicationIdentifier targetParticipant = null;
                 foreach (CallParticipant participantToRemove in participantsToRemoveAll)
                 {
-                    if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString()) &&
-                            target.Contains(participantToRemove.Identifier.ToString()) ||
-                            (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(TargetIdentity))) 
+                    if (!string.IsNullOrEmpty(participantToRemove.Identifier.ToString())) 
                     {
-                        if (hangupScenario == 4 && participantToRemove.Identifier.RawId.Contains(TargetIdentity))
+                        if (participantToRemove.Identifier.RawId.Contains(TargetIdentity))
                         {
                             targetParticipant = participantToRemove.Identifier;
+                        }
+                        else if (participantToRemove.Identifier.RawId.Contains(SourceId))
+                        {
+                            SourceId = participantToRemove.Identifier.RawId;
                         }
                         else
                         {
@@ -308,7 +312,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                         }
                     }
                 }
-                if (targetParticipant != null)
+                if (hangupScenario == 4 && targetParticipant != null)
                 {
                     logger.LogInformation($"going to remove target participant : {targetParticipant.RawId}");
                     var removeParticipantResponse = await callConnection.RemoveParticipantAsync(targetParticipant);
