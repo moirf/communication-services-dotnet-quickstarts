@@ -6,9 +6,6 @@ namespace CallAutomation.Scenarios.Interfaces
     {
         // TODO: collapse these into a POCO
         RecordingContext? GetRecordingContext(string serverCallId);
-        //TelemetryLoggingContext? GetTelemetryLoggingContext(string? serverCallId);
-        //void SetTelemetryLoggingContext(string? serverCallId, TelemetryLoggingContext telemetryLoggingContext);
-        //TelemetryLoggingContext? GetTelemetryLoggingContext(string? serverCallId, string? recordingId, string? startTime, string? EventName, string? ClientRequestId, string? Status, string? Content, string? ContentStream, string? ActionName);
         void SetRecordingContext(string serverCallId, RecordingContext recordingContext);
         string? GetCustomerId(string callConnectionId);
         bool SetCustomerId(string callConnectionId, string accountId);

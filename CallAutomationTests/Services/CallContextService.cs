@@ -18,7 +18,6 @@ namespace CallAutomation.Scenarios.Services
         private ConcurrentDictionary<string, string> _callConnectionIdToMediaSubscriptionId;
         private ConcurrentDictionary<string, string> _callConnectionIdToCallSummary;
         private ConcurrentDictionary<string, RecordingContext> _serverCallIdToRecordingContext;
-        //private ConcurrentDictionary<string, TelemetryLoggingContext> _serverCallIdToTelemetryLoggingContext;
 
         public CallContextService()
         {
@@ -35,18 +34,8 @@ namespace CallAutomation.Scenarios.Services
             _callConnectionIdToCallSummary = new ConcurrentDictionary<string, string>();
             _callConnectionIdToMainMenuSpeechRecognizerCancellationTokenSource = new ConcurrentDictionary<string, CancellationTokenSource>();
             _serverCallIdToRecordingContext = new ConcurrentDictionary<string, RecordingContext>();
-            //_serverCallIdToTelemetryLoggingContext = new ConcurrentDictionary<string, TelemetryLoggingContext>();
         }
-        //public TelemetryLoggingContext? GetTelemetryLoggingContext(string? serverCallId)
-        //{
-        //    if (_serverCallIdToTelemetryLoggingContext.TryGetValue(serverCallId, out var telemetryLoggingContext)) { return telemetryLoggingContext; }
-        //    return null;
-        //    //return GetTelemetryLoggingContext(serverCallId, recordingId, startTime, EventName, ClientRequestId, Status, Content, ContentStream, ActionName);
-        //}
-        //public void SetTelemetryLoggingContext(string serverCallId, TelemetryLoggingContext telemetryLoggingContext)
-        //{
-        //    _serverCallIdToTelemetryLoggingContext.AddOrUpdate(serverCallId, telemetryLoggingContext, (_, _) => telemetryLoggingContext);
-        //}
+
         public RecordingContext? GetRecordingContext(string serverCallId)
         {
             if (_serverCallIdToRecordingContext.TryGetValue(serverCallId, out var recordingContext))
