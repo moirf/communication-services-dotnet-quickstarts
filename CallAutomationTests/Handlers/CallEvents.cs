@@ -80,19 +80,4 @@ namespace CallAutomation.Scenarios.Handlers
         /// <summary> The Id of the Microsoft Teams user. If not anonymous, this is the AAD object Id of the user. </summary>
         public string UserId { get; set; }
     }
-
-    //public class TelemetryLoggingContext
-    //{
-    //    public string? EventName { get; set; }
-    //    public string? ServerCallId { get; set; }
-    //    public string? RecordingId { get; set; }
-    //    public string? StartTime { get; set; }
-    //    public string? ClientRequestId { get; set; }
-    //    public string? Status { get; set; }
-    //    public string? Content { get; set; }
-    //    public string? ContentStream { get; set; }
-    //    public string? ActionName { get; set; }
-    //    //public RecordingContext? RecordingContext { get; set; }
-    //    public TelemetryLoggingContext() { }
-    //}
 }

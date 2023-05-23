@@ -1,39 +1,47 @@
-﻿using Microsoft.ApplicationInsights;
+﻿using Azure.Communication.CallAutomation;
+using Microsoft.ApplicationInsights;
+using System.Collections.Concurrent;
 
 namespace CallAutomation.Scenarios
 {
-    public interface ItelemetryKeys
+    public class TelemetryLoggingContext
     {
-        public static string? EventName { get; set; }
-        public static string? ServerCallId { get; set; }
-        public static string? RecordingId { get; set; }
-        public static string? StartTime { get; set; }
-        public static string? ClientRequestId { get; set; }
-        public static string? Status { get; set; }
-        public static string? Content { get; set; }
-        public static string? ContentStream { get; set; }
-        public static string? ActionName { get; set; }
-        //public Task TrackEvent();
-
+        public string? EventName { get; set; }
+        public DateTime? StartTime { get; set; }
+        public string? ServerCallId { get; set; }
+        public string? RecordingId { get; set; }
+        public string? ClientRequestId { get; set; }
+        public int? Status { get; set; }
+        public RecordingState? RecordingState { get; set; }
+        public TelemetryLoggingContext() { }
     }
     public class TelemetryLogger
     {
-
-        public static ItelemetryKeys _telemetryKeys;
-        static TelemetryClient _telemetryClient;
-
-        public TelemetryLogger(ItelemetryKeys telemetryKeys, TelemetryClient telemetryClient)
+        static TelemetryClient _telemetryClient = new TelemetryClient();
+        private ConcurrentDictionary<string, TelemetryLoggingContext> _serverCallIdToTelemetryLoggingContext = new ConcurrentDictionary<string, TelemetryLoggingContext>();
+        public TelemetryLoggingContext? GetTelemetryLoggingContext(string recordingId = null, string serverCallId = null)
         {
-            _telemetryClient = telemetryClient;
-            _telemetryKeys = telemetryKeys;
+            if (_serverCallIdToTelemetryLoggingContext.TryGetValue(serverCallId != null ? serverCallId : recordingId, out var telemetryLoggingContext)) { return telemetryLoggingContext; }
+            return null;
+        }
 
-        }
-        public static void TrackEvent()
+        public void SetTelemetryLoggingContext(TelemetryLoggingContext telemetryLoggingContext, string recordingId = null, string serverCallId = null)
         {
-            var properties = new Dictionary<string, string> { { "ServerCallId", _telemetryKeys.ServerCallId }, { "RecordingId", _telemetryKeys.RecordingId }, { "StartTime", _telemetryKeys.StartTime }, { "ActionName", _telemetryKeys.ActionName }, { "ClientRequestId", _telemetryKeys.ClientRequestId }, { "Status", _telemetryKeys.Status }, { "Content", _telemetryKeys.Content }, { "ContentStream", _telemetryKeys.ContentStream } };
-            _telemetryClient.TrackEvent(_telemetryKeys.EventName, properties);
+            _serverCallIdToTelemetryLoggingContext.AddOrUpdate(serverCallId != null ? serverCallId : recordingId, telemetryLoggingContext, (_, _) => telemetryLoggingContext);
         }
-        public static void TrackMetrics(string message)
+
+        public void TrackEventHandler(TelemetryLoggingContext telemetryProperties)
+        {
+            var properties = new Dictionary<string, string> { { "ServerCallId", telemetryProperties.ServerCallId }, { "RecordingId", telemetryProperties.RecordingId }, { "StartTime", telemetryProperties.StartTime.ToString() }, { "ClientRequestId", telemetryProperties.ClientRequestId }, { "Status", telemetryProperties.Status.ToString() }, { "RecordingState", telemetryProperties.RecordingState.ToString() } };
+
+            _telemetryClient.TrackEvent(telemetryProperties.EventName, properties);
+        }
+
+        public void TrackExceptionHandler(Exception ex)
+        {
+            _telemetryClient.TrackException(ex);
+        }
+        public void TrackMetrics(string message)
         {
         }
 
