@@ -27,6 +27,18 @@ namespace CallAutomation_AppointmentReminder
         /// The phone number associated with the source. 
         /// </summary>
         public string SourcePhoneNumber { get; set; }
+        /// <summary>
+        /// The Identity number associated with the AcsUser1. 
+        /// </summary>
+        public string AcsUser1 { get; set; }
+        /// <summary>
+        /// The Identity number associated with the AcsUser2. 
+        /// </summary>
+        public string AcsUser2 { get; set; }
+        /// <summary>
+        /// The Identity number associated with the AcsUser3. 
+        /// </summary>
+        public string AcsUser3 { get; set; }
 
         /// <summary>
         /// The phone number to add Participant to the call. 
