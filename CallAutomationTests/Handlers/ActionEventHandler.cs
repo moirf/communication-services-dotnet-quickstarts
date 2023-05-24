@@ -1,5 +1,6 @@
 ﻿using CallAutomation.Scenarios.Handlers;
 using CallAutomation.Scenarios.Interfaces;
+using CallAutomation.Scenarios.Models;
 
 namespace CallAutomation.Scenarios
 {
@@ -11,19 +12,19 @@ namespace CallAutomation.Scenarios
         private readonly ILogger<CallEventHandler> _logger;
         private readonly ICallAutomationService _callAutomationService;
         private readonly ICallContextService _callContextService;
-        public TelemetryLogger telemetryLogger = new TelemetryLogger();
+        private readonly ITelemetryService _telemetryService;
         public ActionEventHandler(
             IConfiguration configuration,
             ILogger<CallEventHandler> logger,
             ICallAutomationService callAutomationService,
-            ICallContextService callContextService)
-
+            ICallContextService callContextService,
+            ITelemetryService telemetryService)
         {
             _configuration = configuration;
             _logger = logger;
             _callAutomationService = callAutomationService;
             _callContextService = callContextService;
-
+            _telemetryService = telemetryService;
         }
 
         public async Task Handle(OutboundCallContext outboundCallContext)
@@ -51,12 +52,20 @@ namespace CallAutomation.Scenarios
                 var serverCallId = recordingContext.ServerCallId ?? throw new ArgumentNullException($"ServerCallId is null: {recordingContext}");
                 var startRecordingResponse = await _callAutomationService.StartRecordingAsync(serverCallId);
                 _callContextService.SetRecordingContext(serverCallId, new RecordingContext() { StartTime = DateTime.UtcNow, RecordingId = startRecordingResponse.RecordingId });
-                telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = "StartRecording", StartTime = DateTime.UtcNow, ServerCallId = serverCallId, RecordingId = startRecordingResponse.RecordingId });
+                //telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = "StartRecording", StartTime = DateTime.UtcNow, ServerCallId = serverCallId, RecordingId = startRecordingResponse.RecordingId });
+                RecordingTelemetryDimensions recordingTelemetryDimensions = new RecordingTelemetryDimensions()
+                {
+                    EventName = "StartRecording",
+                    RecordingId = recordingContext.RecordingId,
+                    StartTime = DateTime.UtcNow,
+                    ServerCallId = recordingContext.ServerCallId,
+                };
+
+                _telemetryService.TrackEvent(eventName: recordingTelemetryDimensions.EventName, recordingTelemetryDimensions.GetDimensionsProperties());
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Start Recording failed unexpectedly");
-                telemetryLogger.TrackExceptionHandler(ex);
                 throw;
             }
         }
@@ -74,19 +83,19 @@ namespace CallAutomation.Scenarios
             {
                 case "PauseRecording":
                     var pauseRecordingResponse = await _callAutomationService.PauseRecordingAsync(recordingId);
-                    telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, ClientRequestId = pauseRecordingResponse.ClientRequestId, Status = pauseRecordingResponse.Status });
+                    //telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, ClientRequestId = pauseRecordingResponse.ClientRequestId, Status = pauseRecordingResponse.Status });
                     break;
                 case "ResumeRecording":
                     var resumeRecordingResponse = await _callAutomationService.ResumeRecordingAsync(recordingId);
-                    telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, Status = resumeRecordingResponse.Status });
+                    //telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, Status = resumeRecordingResponse.Status });
                     break;
                 case "GetRecordingState":
                     var getRecordingStateResponse = await _callAutomationService.GetRecordingStateAsync(recordingId);
-                    telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, RecordingState = getRecordingStateResponse.RecordingState });
+                    //telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, RecordingState = getRecordingStateResponse.RecordingState });
                     break;
                 case "StopRecording":
                     var stopRecordingStateResponse = await _callAutomationService.StopRecordingAsync(recordingId);
-                    telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, ClientRequestId = stopRecordingStateResponse.ClientRequestId, Status = stopRecordingStateResponse.Status });
+                    //telemetryLogger.TrackEventHandler(new TelemetryLoggingContext() { EventName = actionName, StartTime = DateTime.UtcNow, RecordingId = recordingId, ClientRequestId = stopRecordingStateResponse.ClientRequestId, Status = stopRecordingStateResponse.Status });
                     break;
             }
         }
