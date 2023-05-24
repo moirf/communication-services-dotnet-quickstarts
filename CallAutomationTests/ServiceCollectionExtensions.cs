@@ -39,6 +39,7 @@ namespace CallAutomation.Scenarios
         {
             services.AddSingleton<ICallAutomationService, CallAutomationService>();
             services.AddSingleton<ICallContextService, CallContextService>();
+            services.AddSingleton<ITelemetryService, TelemetryService>();
             return services;
         }
     }

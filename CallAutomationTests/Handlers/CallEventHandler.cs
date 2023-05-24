@@ -33,17 +33,20 @@ namespace CallAutomation.Scenarios.Handlers
         private readonly ILogger<CallEventHandler> _logger;
         private readonly ICallAutomationService _callAutomationService;
         private readonly ICallContextService _callContextService;
+        private readonly ITelemetryService _telemetryService;
         public static string recFileFormat;
         public CallEventHandler(
             IConfiguration configuration,
             ILogger<CallEventHandler> logger,
             ICallAutomationService callAutomationService,
-            ICallContextService callContextService)
+            ICallContextService callContextService,
+            ITelemetryService telemetryService)
         {
             _configuration = configuration;
             _logger = logger;
             _callAutomationService = callAutomationService;
             _callContextService = callContextService;
+            _telemetryService = telemetryService;
         }
 
         public async Task Handle(IncomingCallEvent incomingCallEvent)
@@ -712,6 +715,8 @@ namespace CallAutomation.Scenarios.Handlers
         {
             using (_logger.BeginScope(GetLogContext(recordingStateChanged.CorrelationId, recordingStateChanged.CallConnectionId, recordingStateChanged.OperationContext)))
             {
+                _telemetryService.TrackMetric("RecordingStateChangedEvent", 0);
+
                 _logger.LogInformation($"RecordingStateChanged received : State = '{recordingStateChanged.State}', " +
                     $"StartDateTime = '{recordingStateChanged.StartDateTime}'");
 
@@ -733,6 +738,7 @@ namespace CallAutomation.Scenarios.Handlers
                         if (context.StartDurationInMS == null)
                         {
                             context.StartDurationInMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
+                            _telemetryService.TrackMetric("StartRecordingDurationTime", (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds);
                         }
                         else if (context != null && context.StartDurationInMS != null)
                         {
