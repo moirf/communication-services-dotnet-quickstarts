@@ -7,14 +7,29 @@ namespace CallAutomation.Scenarios.Handlers
 {
     public class RecordingContext
     {
+        /// <summary> The call id. </summary>
         public string? ServerCallId { get; set; }
+        
+        /// <summary> The recording id. </summary>
         public string? RecordingId { get; set; }
+        
+        /// <summary> The time at which the recording started. </summary>
         public DateTime? StartTime { get; set; }
-        public double? StartDurationInMS { get; set; }
-        public double? ResumeDurationInMS { get; set; }
-        public double? PauseDurationInMS { get; set; }
-        public DateTime? APIStartTime { get; set; }
-        public double? StopDurationInMS { get; set; }
+        
+        /// <summary> The recording start action duration in milliseconds. </summary>
+        public double? StartDurationMS { get; set; }
+        
+        /// <summary> The recording pause action duration in milliseconds. </summary>
+        public double? PauseDurationMS { get; set; }
+        
+        /// <summary> The recording resume action duration in milliseconds. </summary>
+        public double? ResumeDurationMS { get; set; }
+
+        /// <summary> The recording stop action duration in milliseconds. </summary>
+        public double? StopDurationMS { get; set; }
+        
+        /// <summary> To keep track of recording action - Start, Stop, Pause, or Resume start time. </summary>
+        public DateTime? RecordingActionStartTime { get; set; }
         public RecordingContext() { }
     }
 

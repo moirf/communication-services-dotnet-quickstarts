@@ -48,7 +48,7 @@ namespace CallAutomation.Scenarios.Services
 
         public void SetRecordingContext(string recordingId, RecordingContext recordingContext)
         {
-            recordingContext.APIStartTime = DateTime.UtcNow;
+            recordingContext.RecordingActionStartTime = DateTime.UtcNow;
             _serverCallIdToRecordingContext.AddOrUpdate(recordingId, recordingContext, (_, _) => recordingContext);
         }
 

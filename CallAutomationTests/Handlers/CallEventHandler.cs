@@ -736,41 +736,42 @@ namespace CallAutomation.Scenarios.Handlers
 
                 if (context != null)
                 {
-                    double durationinMS = 0;
+                    double durationMS = 0;
                     if (recordingStateChanged.State == RecordingState.Active)
                     {
-                        if (context.StartDurationInMS == null)
+                        if (context.StartDurationMS == null && recordingStateChanged.StartDateTime != null)  // start recording case
                         {
-                            durationinMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
-                            eventName = Constants.TelemetryEvents.StartRecordingDurationTime;
-                            context.StartDurationInMS = durationinMS;
+                            durationMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
+                            eventName = Constants.TelemetryEvents.StartRecordingDurationMS;
+                            context.StartDurationMS = durationMS;
                         }
-                        else if (context != null && context.StartDurationInMS != null)
+                        else if (context.StartDurationMS != null && recordingStateChanged.StartDateTime != null) //resume recpording case
                         {
-                            durationinMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
-                            eventName = Constants.TelemetryEvents.ResumeRecordingDurationTime;
-                            context.ResumeDurationInMS = durationinMS;
+                            durationMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
+                            eventName = Constants.TelemetryEvents.ResumeRecordingDurationMS;
+                            context.ResumeDurationMS = durationMS;
                         }
                     }
                     else if (recordingStateChanged.State == RecordingState.Inactive)
                     {
-                        if (context != null && context.StartDurationInMS != null)
+                        if (context.StartDurationMS != null && recordingStateChanged.StartDateTime != null)  // pasue recording case
                         {
-                            durationinMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
-                            eventName = Constants.TelemetryEvents.PauseRecordingDurationTime;
-                            context.PauseDurationInMS = durationinMS;
+                            durationMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
+                            eventName = Constants.TelemetryEvents.PauseRecordingDurationMS;
+                            context.ResumeDurationMS = durationMS;
                         }
                     }
 
                     _callContextService.SetRecordingContext(recordingStateChanged.RecordingId, context);
+                    
                     RecordingTelemetryDimensions recordingTelemetryDimensions = new RecordingTelemetryDimensions()
                     {
                         EventName = eventName,
                         StartTime = DateTime.UtcNow,
                         RecordingState = recordingStateChanged.State,
-                        DurationInMS = durationinMS
+                        DurationMS = durationMS
                     };
-                    _telemetryService.TrackMetric(eventName, durationinMS);
+                    _telemetryService.TrackMetric(eventName, durationMS);
                     _telemetryService.TrackEvent(eventName: recordingTelemetryDimensions.EventName, recordingTelemetryDimensions.GetDimensionsProperties());
                 }
 
@@ -1008,19 +1009,19 @@ namespace CallAutomation.Scenarios.Handlers
 
                 if (context != null)
                 {
-                    if (context.StopDurationInMS == null)
+                    if (context.StopDurationMS == null && context.RecordingActionStartTime != null)
                     {
-                        string eventName = Constants.TelemetryEvents.StopRecordingDurationTime;
-                        double durationinMS = (DateTime.UtcNow - context.APIStartTime).Value.TotalMilliseconds;
-                        context.StopDurationInMS = durationinMS;
+                        string eventName = Constants.TelemetryEvents.StopRecordingDurationMS;
+                        double durationMS = (DateTime.UtcNow - context.RecordingActionStartTime).Value.TotalMilliseconds;
+                        context.StopDurationMS = durationMS;
 
                         RecordingTelemetryDimensions recordingTelemetryDimensions = new RecordingTelemetryDimensions()
                         {
                             EventName = eventName,
                             StartTime = DateTime.UtcNow,
-                            DurationInMS = durationinMS
+                            DurationMS = durationMS
                         };
-                        _telemetryService.TrackMetric(eventName, durationinMS);
+                        _telemetryService.TrackMetric(eventName, durationMS);
                         _telemetryService.TrackEvent(eventName: recordingTelemetryDimensions.EventName, recordingTelemetryDimensions.GetDimensionsProperties());
                     }
                 }

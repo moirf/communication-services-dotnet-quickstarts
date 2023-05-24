@@ -16,9 +16,9 @@ namespace CallAutomation.Scenarios.Services
 
 
 
-        public bool TrackEvent(string eventName, Dictionary<string, string> properties)
+        public bool TrackEvent(string eventName, IDictionary<string, string>? properties = null, IDictionary<string, double>? metrics = null)
         {
-            _telemetryClient.TrackEvent(eventName, properties);
+            _telemetryClient.TrackEvent(eventName, properties, metrics);
             return true;
         }
 

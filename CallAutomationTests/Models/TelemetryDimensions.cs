@@ -12,7 +12,7 @@ namespace CallAutomation.Scenarios.Models
         public string? ServerCallId { get; set; }
         public string? RecordingId { get; set; }
         public RecordingState? RecordingState { get; set; }
-        public double? DurationInMS { get; set; }
+        public double? DurationMS { get; set; }
 
 
 
@@ -22,7 +22,7 @@ namespace CallAutomation.Scenarios.Models
             nameof(ServerCallId),
             nameof(RecordingId),
             nameof(RecordingState),
-            nameof(DurationInMS)
+            nameof(DurationMS)
             // Add new dimensions from here
         };
 

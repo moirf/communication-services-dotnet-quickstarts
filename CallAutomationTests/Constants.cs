@@ -63,10 +63,10 @@
 
         public static class TelemetryEvents
         {
-            public const string StartRecordingDurationTime = "StartRecordingDurationTime";
-            public const string StopRecordingDurationTime = "StopRecordingDurationTime";
-            public const string ResumeRecordingDurationTime = "ResumeRecordingDurationTime";
-            public const string PauseRecordingDurationTime = "PauseRecordingDurationTime";
+            public const string StartRecordingDurationMS = "StartRecordingDurationMS";
+            public const string StopRecordingDurationMS = "StopRecordingDurationMS";
+            public const string ResumeRecordingDurationMS = "ResumeRecordingDurationMS";
+            public const string PauseRecordingDurationMS = "PauseRecordingDurationMS";
             public const string RecordingStateChangedEvent = "RecordingStateChangedEvent";
         }
     }
