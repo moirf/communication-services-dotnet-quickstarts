@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Blobs.Models;
+﻿using Azure.Communication.CallAutomation;
 using CallAutomation.Scenarios.Interfaces;
 
 namespace CallAutomation.Scenarios.Models
@@ -11,6 +11,8 @@ namespace CallAutomation.Scenarios.Models
         public DateTime? StartTime { get; set; }
         public string? ServerCallId { get; set; }
         public string? RecordingId { get; set; }
+        public RecordingState? RecordingState { get; set; }
+        public double? DurationInMS { get; set; }
 
 
 
@@ -19,6 +21,8 @@ namespace CallAutomation.Scenarios.Models
             nameof(StartTime),
             nameof(ServerCallId),
             nameof(RecordingId),
+            nameof(RecordingState),
+            nameof(DurationInMS)
             // Add new dimensions from here
         };
 

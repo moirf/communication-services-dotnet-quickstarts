@@ -4,6 +4,7 @@ using Azure;
 using Azure.Communication.CallAutomation;
 using Azure.Messaging.EventGrid.SystemEvents;
 using CallAutomation.Scenarios.Interfaces;
+using CallAutomation.Scenarios.Models;
 using CallAutomation.Scenarios.Utils;
 using System.Collections.Immutable;
 using System.Net;
@@ -35,6 +36,8 @@ namespace CallAutomation.Scenarios.Handlers
         private readonly ICallContextService _callContextService;
         private readonly ITelemetryService _telemetryService;
         public static string recFileFormat;
+        public static string eventName;
+
         public CallEventHandler(
             IConfiguration configuration,
             ILogger<CallEventHandler> logger,
@@ -737,11 +740,13 @@ namespace CallAutomation.Scenarios.Handlers
                     {
                         if (context.StartDurationInMS == null)
                         {
+                            eventName = "StartRecording";
                             context.StartDurationInMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
                             _telemetryService.TrackMetric("StartRecordingDurationTime", (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds);
                         }
                         else if (context != null && context.StartDurationInMS != null)
                         {
+                            eventName = "ResumeRecording";
                             context.ResumeDurationInMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
                         }
                     }
@@ -749,11 +754,21 @@ namespace CallAutomation.Scenarios.Handlers
                     {
                         if (context != null && context.StartDurationInMS != null)
                         {
+                            eventName = "PauseRecording";
                             context.PauseDurationInMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
                         }
                     }
 
                     _callContextService.SetRecordingContext(recordingStateChanged.RecordingId, context);
+                    RecordingTelemetryDimensions recordingTelemetryDimensions = new RecordingTelemetryDimensions()
+                    {
+                        EventName = eventName,
+                        StartTime = DateTime.UtcNow,
+                        RecordingState = recordingStateChanged.State,
+                        DurationInMS = (eventName == "StartRecording") ? context.StartDurationInMS : (eventName == "ResumeRecording") ? context.ResumeDurationInMS : context.PauseDurationInMS
+                    };
+
+                    _telemetryService.TrackEvent(eventName: recordingTelemetryDimensions.EventName, recordingTelemetryDimensions.GetDimensionsProperties());
                 }
 
                 return Task.CompletedTask;
