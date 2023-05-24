@@ -31,7 +31,8 @@ IVR solution based on Call Automation SDK, you can choose options either by voic
 	- Create `Dev Tunnels`, for more details about [Dev Tunnels.](https://learn.microsoft.com/en-us/aspnet/core/test/dev-tunnels?view=aspnetcore-7.0)  
 	![ViewDevTunnels](./data//ViewDevTunnel.png)   
 	![CreateDevTunnels](./data//CreateDevTunnel.png) 
-
+- Add Application Insights automatically (To Add Application Insights manually follow document [azure-monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/app/asp-net))
+	- Select Project > Add Application Insights Telemetry > Application Insights Sdk (local) > Next > Finish > Close
 
 ## Before running the sample for the first time
 

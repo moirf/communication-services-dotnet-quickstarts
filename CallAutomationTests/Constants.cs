@@ -61,7 +61,14 @@
             public const string Other = "other";
         }
 
-
+        public static class TelemetryEvents
+        {
+            public const string StartRecordingDurationTime = "StartRecordingDurationTime";
+            public const string StopRecordingDurationTime = "StopRecordingDurationTime";
+            public const string ResumeRecordingDurationTime = "ResumeRecordingDurationTime";
+            public const string PauseRecordingDurationTime = "PauseRecordingDurationTime";
+            public const string RecordingStateChangedEvent = "RecordingStateChangedEvent";
+        }
     }
     public static class QueueConstants
     {

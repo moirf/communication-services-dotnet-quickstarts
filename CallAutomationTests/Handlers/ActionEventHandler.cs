@@ -1,8 +1,6 @@
-﻿using Azure.Communication.CallAutomation;
-using Azure.Messaging.EventGrid;
-using CallAutomation.Scenarios.Handlers;
+﻿using CallAutomation.Scenarios.Handlers;
 using CallAutomation.Scenarios.Interfaces;
-using System.Runtime.Versioning;
+using CallAutomation.Scenarios.Models;
 
 namespace CallAutomation.Scenarios
 {
@@ -14,18 +12,19 @@ namespace CallAutomation.Scenarios
         private readonly ILogger<CallEventHandler> _logger;
         private readonly ICallAutomationService _callAutomationService;
         private readonly ICallContextService _callContextService;
+        private readonly ITelemetryService _telemetryService;
         public ActionEventHandler(
             IConfiguration configuration,
             ILogger<CallEventHandler> logger,
             ICallAutomationService callAutomationService,
-            ICallContextService callContextService)
-
+            ICallContextService callContextService,
+            ITelemetryService telemetryService)
         {
             _configuration = configuration;
             _logger = logger;
             _callAutomationService = callAutomationService;
             _callContextService = callContextService;
-
+            _telemetryService = telemetryService;
         }
 
         public async Task Handle(OutboundCallContext outboundCallContext)
@@ -59,6 +58,16 @@ namespace CallAutomation.Scenarios
                         RecordingId = startRecordingResponse.RecordingId,
                         ServerCallId = serverCallId
                     });
+
+                RecordingTelemetryDimensions recordingTelemetryDimensions = new RecordingTelemetryDimensions()
+                {
+                    EventName = "StartRecording",
+                    RecordingId = recordingContext.RecordingId,
+                    StartTime = DateTime.UtcNow,
+                    ServerCallId = recordingContext.ServerCallId,
+                };
+
+                _telemetryService.TrackEvent(eventName: recordingTelemetryDimensions.EventName, recordingTelemetryDimensions.GetDimensionsProperties());
             }
             catch (Exception ex)
             {
