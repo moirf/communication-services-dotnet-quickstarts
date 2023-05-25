@@ -36,9 +36,9 @@ namespace CallAutomation.Scenarios.Services
             _serverCallIdToRecordingContext = new ConcurrentDictionary<string, RecordingContext>();
         }
 
-        public RecordingContext? GetRecordingContext(string recordingId)
+        public RecordingContext? GetRecordingContext(string serverCallId)
         {
-            if (_serverCallIdToRecordingContext.TryGetValue(recordingId, out var recordingContext))
+            if (_serverCallIdToRecordingContext.TryGetValue(serverCallId, out var recordingContext))
             {
                 return recordingContext;
             }
@@ -46,10 +46,40 @@ namespace CallAutomation.Scenarios.Services
             return null;
         }
 
-        public void SetRecordingContext(string recordingId, RecordingContext recordingContext)
+        public void SetRecordingContext(string serverCallId, RecordingContext recordingContext)
         {
-            recordingContext.RecordingActionStartTime = DateTime.UtcNow;
-            _serverCallIdToRecordingContext.AddOrUpdate(recordingId, recordingContext, (_, _) => recordingContext);
+            RecordingContext updatedRecordingContext = GetRecordingContext(serverCallId);
+
+            if (updatedRecordingContext != null)
+            {
+                if (recordingContext.RecordingId != null)
+                {
+                    updatedRecordingContext.RecordingId = recordingContext.RecordingId;
+                }
+                if (recordingContext.StartDurationMS != null)
+                {
+                    updatedRecordingContext.StartDurationMS = recordingContext.StartDurationMS;
+                }
+                if (recordingContext.PauseDurationMS != null)
+                {
+                    updatedRecordingContext.PauseDurationMS = recordingContext.PauseDurationMS;
+                }
+                if (recordingContext.ResumeDurationMS != null)
+                {
+                    updatedRecordingContext.ResumeDurationMS = recordingContext.ResumeDurationMS;
+                }
+                if (recordingContext.StopDurationMS != null)
+                {
+                    updatedRecordingContext.StopDurationMS = recordingContext.StopDurationMS;
+                }
+            }
+            else
+            {
+                updatedRecordingContext = recordingContext;
+            }
+
+            updatedRecordingContext.RecordingActionStartTime = DateTime.UtcNow;
+            _serverCallIdToRecordingContext.AddOrUpdate(serverCallId, updatedRecordingContext, (_, _) => updatedRecordingContext);
         }
 
         public string? GetCustomerId(string callConnectionId)

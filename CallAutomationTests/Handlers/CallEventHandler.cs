@@ -718,12 +718,11 @@ namespace CallAutomation.Scenarios.Handlers
             using (_logger.BeginScope(GetLogContext(recordingStateChanged.CorrelationId, recordingStateChanged.CallConnectionId, recordingStateChanged.OperationContext)))
             {
                 string eventName = Constants.TelemetryEvents.RecordingStateChangedEvent;
-                _telemetryService.TrackMetric(eventName, 0);
 
                 _logger.LogInformation($"RecordingStateChanged received : State = '{recordingStateChanged.State}', " +
                     $"StartDateTime = '{recordingStateChanged.StartDateTime}'");
 
-                RecordingContext? context = _callContextService.GetRecordingContext(recordingStateChanged.RecordingId);
+                RecordingContext? context = _callContextService.GetRecordingContext(recordingStateChanged.ServerCallId);
 
                 if (context == null)
                 {
@@ -741,7 +740,7 @@ namespace CallAutomation.Scenarios.Handlers
                     {
                         if (context.StartDurationMS == null && recordingStateChanged.StartDateTime != null)  // start recording case
                         {
-                            durationMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
+                            durationMS = (DateTime.UtcNow - context.RecordingActionStartTime).Value.TotalMilliseconds;
                             eventName = Constants.TelemetryEvents.StartRecordingDurationMS;
                             context.StartDurationMS = durationMS;
                         }
@@ -758,12 +757,12 @@ namespace CallAutomation.Scenarios.Handlers
                         {
                             durationMS = (DateTime.UtcNow - recordingStateChanged.StartDateTime.Value.UtcDateTime).TotalMilliseconds;
                             eventName = Constants.TelemetryEvents.PauseRecordingDurationMS;
-                            context.ResumeDurationMS = durationMS;
+                            context.PauseDurationMS = durationMS;
                         }
                     }
 
-                    _callContextService.SetRecordingContext(recordingStateChanged.RecordingId, context);
-                    
+                    _callContextService.SetRecordingContext(recordingStateChanged.ServerCallId, context);
+
                     RecordingTelemetryDimensions recordingTelemetryDimensions = new RecordingTelemetryDimensions()
                     {
                         EventName = eventName,
@@ -771,8 +770,9 @@ namespace CallAutomation.Scenarios.Handlers
                         RecordingState = recordingStateChanged.State,
                         DurationMS = durationMS
                     };
+                    _telemetryService.TrackEvent(eventName: recordingTelemetryDimensions.EventName,
+                        recordingTelemetryDimensions.GetDimensionsProperties());
                     _telemetryService.TrackMetric(eventName, durationMS);
-                    _telemetryService.TrackEvent(eventName: recordingTelemetryDimensions.EventName, recordingTelemetryDimensions.GetDimensionsProperties());
                 }
 
                 return Task.CompletedTask;
@@ -998,14 +998,14 @@ namespace CallAutomation.Scenarios.Handlers
         {
             throw new NotImplementedException();
         }
-        public Task Handle(AcsRecordingFileStatusUpdatedEventData recordingFileStatusUpdatedEvent, string recordingId)
+        public Task Handle(AcsRecordingFileStatusUpdatedEventData recordingFileStatusUpdatedEvent, string serverCallId)
         {
             try
             {
                 _logger.LogInformation($"RecordingStateChanged received : State = STOP " +
                     $"StartDateTime = '{recordingFileStatusUpdatedEvent.RecordingStartTime}'");
 
-                RecordingContext context = _callContextService.GetRecordingContext(recordingId);
+                RecordingContext context = _callContextService.GetRecordingContext(serverCallId);
 
                 if (context != null)
                 {

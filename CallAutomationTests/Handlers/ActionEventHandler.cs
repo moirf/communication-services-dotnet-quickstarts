@@ -51,7 +51,7 @@ namespace CallAutomation.Scenarios
             {
                 var serverCallId = recordingContext.ServerCallId ?? throw new ArgumentNullException($"ServerCallId is null: {recordingContext}");
                 var startRecordingResponse = await _callAutomationService.StartRecordingAsync(serverCallId);
-                _callContextService.SetRecordingContext(startRecordingResponse.RecordingId,
+                _callContextService.SetRecordingContext(serverCallId,
                     new RecordingContext()
                     {
                         StartTime = DateTime.UtcNow,
@@ -76,9 +76,9 @@ namespace CallAutomation.Scenarios
             }
         }
 
-        public RecordingContext Handle (string recordingId)
+        public RecordingContext Handle (string serverCallId)
         {
-            RecordingContext context = _callContextService.GetRecordingContext(recordingId);
+            RecordingContext context = _callContextService.GetRecordingContext(serverCallId);
             return context;
         }
 

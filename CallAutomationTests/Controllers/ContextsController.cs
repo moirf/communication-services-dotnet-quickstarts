@@ -13,17 +13,17 @@ namespace CallAutomation.Scenarios.Controllers
             _callContextService = callContextService;
         }
 
-        [HttpGet("recordings/{recordingId}", Name = "GetRecording_Context")]
-        public IActionResult GetRecordingContext([FromRoute] string recordingId)
+        [HttpGet("recordings/{serverCallId}", Name = "GetRecording_Context")]
+        public IActionResult GetRecordingContext([FromRoute] string serverCallId)
         {
-            var recordingContext = _callContextService.GetRecordingContext(recordingId);
+            var recordingContext = _callContextService.GetRecordingContext(serverCallId);
             return new JsonResult(recordingContext);
         }
 
-        [HttpPatch("recordings/{recordingId}", Name = "SetRecording_Context")]
-        public IActionResult SetRecordingContext([FromBody] RecordingContext recordingContext, [FromRoute] string recordingId)
+        [HttpPatch("recordings/{serverCallId}", Name = "SetRecording_Context")]
+        public IActionResult SetRecordingContext([FromBody] RecordingContext recordingContext, [FromRoute] string serverCallId)
         {
-            _callContextService.SetRecordingContext(recordingId, recordingContext);
+            _callContextService.SetRecordingContext(serverCallId, recordingContext);
             return new OkResult();
         }
     }
