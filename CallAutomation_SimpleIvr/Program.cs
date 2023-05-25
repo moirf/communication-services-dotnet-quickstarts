@@ -58,16 +58,16 @@ app.MapPost("/api/incomingCall", async (
             }
         }
         var jsonObject = JsonNode.Parse(eventGridEvent.Data).AsObject();
-        var targetId = (string)(jsonObject["to"]["rawId"]);
-        sourceCallerID = (string)(jsonObject["from"]["rawId"]);
-        var incomingCallContext = (string)jsonObject["incomingCallContext"];
-        var callbackUri = new Uri(baseUri + $"/api/calls/{Guid.NewGuid()}?callerId={sourceCallerID}");
-
+        var targetId = (string)(jsonObject["to"]["rawId"]); 
         caSourceId = builder.Configuration["TargetId"];
         var rejectcall = Convert.ToBoolean(builder.Configuration["declinecall"]);
 
-        if (caSourceId.Contains(targetId))
+        if (caSourceId.Contains(targetId) )
         {
+            sourceCallerID = (string)(jsonObject["from"]["rawId"]);
+            var incomingCallContext = (string)jsonObject["incomingCallContext"];
+            var callbackUri = new Uri(baseUri + $"/api/calls/{Guid.NewGuid()}?callerId={sourceCallerID}");
+
             if (rejectcall)
             {
                 var response = client.RejectCallAsync(incomingCallContext);
