@@ -24,11 +24,7 @@ namespace CallAutomation.Scenarios.Services
 
         public bool TrackMetric(string metricName, double value )
         {
-            MetricTelemetry metric = new MetricTelemetry();
-            metric.Name = metricName;
-            metric.Sum = value;
-            metric.Timestamp = DateTime.UtcNow;
-            _telemetryClient.TrackMetric(metric);
+            _telemetryClient.TrackMetric(metricName, value);
             return true;
         }
     }
