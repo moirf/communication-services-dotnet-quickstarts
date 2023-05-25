@@ -27,8 +27,8 @@ A separate branch with end to end implementation is [available](https://github.c
 Call Recording enables you to record multiple calling scenarios available in Azure Communication Services by providing you with a set of APIs to start, stop, pause and resume recording. To learn more about it, see [this guide](https://learn.microsoft.com/en-us/azure/communication-services/concepts/voice-video-calling/call-recording). 
 1. Navigate to your resource on Azure portal and select `Events` from the left side menu.
 2. Select `+ Event Subscription` to create a new subscription. 
-3. Filter for Recording File Status event. 
-4. Choose endpoint type as web hook and provide the public url generated for your application by Dev Tunnels. Make sure to provide the exact api route that you programmed to receive the event previously. In this case, it would be <dev_tunnel_url>/api/recording.
+3. Filter for Recording File Status Updated(preview) event. 
+4. Choose endpoint type as web hook and provide the public url generated for your application by Dev Tunnels. Make sure to provide the exact api route that you programmed to receive the event previously. In this case, it would be <dev_tunnel_url>/recording/getRecordingFile.
 
 ![Event Grid Subscription for Call Recording](./data/EventgridSubscription-CallRecording.png)
 
@@ -49,27 +49,28 @@ Call Recording enables you to record multiple calling scenarios available in Azu
 	- Input your storage connection string in the variable: `BlobStorageConnectionString`
 	- Input blob container name for recorded media in the variable `BlobContainerName`
 
-## Locally deploying the sample app
+## Locally Run the sample app
 
 1. Go to ServerRecording folder and open `RecordingApi.csproj` solution in Visual Studio
 2. Run `RecordingApi` project.
 3. Use postman or any debugging tool and open url - https://localhost:5001
+
+## Publish to Azure
+
+1. Right click the `RecordingApi` project and select Publish.
+2. Create a new publish profile and select your app name, Azure subscription, resource group and etc.
+3. Detailed instructions on publishing the app to Azure are available at [Publish a Web app](https://docs.microsoft.com/visualstudio/deployment/quickstart-deploy-to-azure?view=vs-2019).
+4. Before Run app on Azure web, add your connection string with `Edit App Service Settings`, and fill in `ResourceConnectionString` as key and connection string (copy from appsettings.json) as value
+
+**Note**: While you may use http://localhost for local testing, the sample when deployed will only work when served over https. The SDK [does not support http](https://docs.microsoft.com/azure/communication-services/concepts/voice-video-calling/calling-sdk-features#user-webrtc-over-https).
 
 ### Troubleshooting
 
 1. Solution doesn\'t build, it throws errors during build
 	- Clean/rebuild the C# solution
 
-## Publish to Azure
-
-1. Right click the `RecordingApi` project and select Publish.
-2. Create a new publish profile and select your app name, Azure subscription, resource group and etc.
-3. Before publishing, add your connection string with `Edit App Service Settings`, and fill in `ResourceConnectionString` as key and connection string (copy from appsettings.json) as value
-4. Detailed instructions on publishing the app to Azure are available at [Publish a Web app](https://docs.microsoft.com/visualstudio/deployment/quickstart-deploy-to-azure?view=vs-2019).
-
-**Note**: While you may use http://localhost for local testing, the sample when deployed will only work when served over https. The SDK [does not support http](https://docs.microsoft.com/azure/communication-services/concepts/voice-video-calling/calling-sdk-features#user-webrtc-over-https).
-
 ## Additional Reading
 
 - [Azure Communication Calling SDK](https://docs.microsoft.com/azure/communication-services/concepts/voice-video-calling/calling-sdk-features) - To learn more about the calling web sdk
 - [ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/introduction-to-aspnet-core?view=aspnetcore-6.0) - Framework for building web applications
+
