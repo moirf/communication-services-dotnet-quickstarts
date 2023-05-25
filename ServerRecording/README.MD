@@ -61,7 +61,7 @@ Call Recording enables you to record multiple calling scenarios available in Azu
 2. Create a new publish profile and select your app name, Azure subscription, resource group and etc.
 3. Detailed instructions on publishing the app to Azure are available at [Publish a Web app](https://docs.microsoft.com/visualstudio/deployment/quickstart-deploy-to-azure?view=vs-2019).
 4. Before Run app on Azure web, add your connection string with `Edit App Service Settings`, and fill in `ResourceConnectionString` as key and connection string (copy from appsettings.json) as value
-
+ 
 **Note**: While you may use http://localhost for local testing, the sample when deployed will only work when served over https. The SDK [does not support http](https://docs.microsoft.com/azure/communication-services/concepts/voice-video-calling/calling-sdk-features#user-webrtc-over-https).
 
 ### Troubleshooting
