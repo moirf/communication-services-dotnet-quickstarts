@@ -82,6 +82,11 @@ namespace CallAutomation.Scenarios.Services
             _serverCallIdToRecordingContext.AddOrUpdate(serverCallId, updatedRecordingContext, (_, _) => updatedRecordingContext);
         }
 
+        public void DeleteRecordingContext(string serverCallId)
+        {
+            _serverCallIdToRecordingContext.TryRemove(serverCallId, out _);
+        }
+
         public string? GetCustomerId(string callConnectionId)
         {
             if (_callConnectionIdToAccountId.TryGetValue(callConnectionId, out var accountId))

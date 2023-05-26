@@ -26,5 +26,12 @@ namespace CallAutomation.Scenarios.Controllers
             _callContextService.SetRecordingContext(serverCallId, recordingContext);
             return new OkResult();
         }
+
+        [HttpDelete("recordingcontext/{serverCallId}", Name = "DeleteRecording_Context")]
+        public IActionResult DeleteRecordingContext([FromRoute] string serverCallId)
+        {
+            _callContextService.DeleteRecordingContext(serverCallId);
+            return new OkResult();
+        }
     }
 }

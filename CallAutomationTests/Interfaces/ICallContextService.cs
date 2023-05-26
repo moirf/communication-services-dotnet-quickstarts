@@ -7,6 +7,7 @@ namespace CallAutomation.Scenarios.Interfaces
         // TODO: collapse these into a POCO
         RecordingContext? GetRecordingContext(string serverCallId);
         void SetRecordingContext(string serverCallId, RecordingContext recordingContext);
+        void DeleteRecordingContext(string serverCallId);
         string? GetCustomerId(string callConnectionId);
         bool SetCustomerId(string callConnectionId, string accountId);
         bool RemoveCustomerId(string callConnectionId);

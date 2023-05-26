@@ -224,8 +224,6 @@ namespace CallAutomation.Scenarios.Handlers
                 {
                     _logger.LogInformation($"CallDisconnected received");
 
-
-
                     var callConnectionId = callDisconnected.CallConnectionId;
                     var callId = callDisconnected.CorrelationId;
                     var customerAcsId = _callContextService.GetCustomerAcsId(callConnectionId);
@@ -1028,20 +1026,20 @@ namespace CallAutomation.Scenarios.Handlers
 
                 var eventData = recordingFileStatusUpdatedEvent;
 
-                Logger.LogInformation("Microsoft.Communication.RecordingFileStatusUpdated response  -- >" + eventData);
-                Logger.LogInformation("Start processing metadata -- >");
+                //Logger.LogInformation("Microsoft.Communication.RecordingFileStatusUpdated response  -- >" + eventData);
+                //Logger.LogInformation("Start processing metadata -- >");
 
                 var response = _callAutomationService.ProcessFile(eventData.RecordingStorageInfo.RecordingChunks[0].MetadataLocation,
                      eventData.RecordingStorageInfo.RecordingChunks[0].DocumentId,
                      FileFormat.Json,
                      FileDownloadType.Metadata);
 
-                Logger.LogInformation("Start processing recorded media -- >" + response);
+                //Logger.LogInformation("Start processing recorded media -- >" + response);
 
-                response = _callAutomationService.ProcessFile(eventData.RecordingStorageInfo.RecordingChunks[0].ContentLocation,
-                    eventData.RecordingStorageInfo.RecordingChunks[0].DocumentId,
-                    string.IsNullOrWhiteSpace(recFileFormat) ? FileFormat.Mp4 : recFileFormat,
-                    FileDownloadType.Recording);
+                //response = _callAutomationService.ProcessFile(eventData.RecordingStorageInfo.RecordingChunks[0].ContentLocation,
+                //    eventData.RecordingStorageInfo.RecordingChunks[0].DocumentId,
+                //    string.IsNullOrWhiteSpace(recFileFormat) ? FileFormat.Mp4 : recFileFormat,
+                //    FileDownloadType.Recording);
                 return response;
 
             }
