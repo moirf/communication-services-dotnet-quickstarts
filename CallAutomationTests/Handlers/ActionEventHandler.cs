@@ -76,12 +76,6 @@ namespace CallAutomation.Scenarios
             }
         }
 
-        public RecordingContext Handle (string serverCallId)
-        {
-            RecordingContext context = _callContextService.GetRecordingContext(serverCallId);
-            return context;
-        }
-
         public async Task Handle(string actionName, string recordingId)
         {
             switch (actionName)

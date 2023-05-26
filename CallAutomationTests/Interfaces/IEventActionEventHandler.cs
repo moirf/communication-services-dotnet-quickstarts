@@ -8,7 +8,5 @@ namespace CallAutomation.Scenarios.Interfaces
         Task Handle(TEvent @event);
 
         Task Handle(string action, string data);
-
-        RecordingContext Handle(string data);
     }
 }
