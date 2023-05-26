@@ -78,65 +78,6 @@ namespace QuickStartApi.Controllers
             }
         }
 
-
-//********** Replace above API with this if you want to start recording with additional arguments. *************
-
-        /// <summary>
-        /// Method to start call recording using given parameters
-        /// </summary>
-        /// <param name="serverCallId">Conversation id of the call</param>
-        /// <param name="recordingContent">Recording content type. audiovideo/audio</param>
-        /// <param name="recordingChannel">Recording channel type. mixed/unmixed</param>
-        /// <param name="recordingFormat">Recording format type. mp3/mp4/wav</param>
-        //[HttpGet]
-        //[Route("startRecording")]
-        public async Task<IActionResult> StartRecordingAsync(string serverCallId, string recordingContent, string recordingChannel, string recordingFormat)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(serverCallId))
-                {
-                    RecordingContent recContentVal;
-                    RecordingChannel recChannelVal;
-                    RecordingFormat recFormatVal;
-
-                    //Passing RecordingContent initiates recording in specific format. audio/audiovideo
-                    //RecordingChannel is used to pass the channel type. mixed/unmixed
-                    //RecordingFormat is used to pass the format of the recording. mp4/mp3/wav
-                    StartRecordingOptions recordingOptions = new StartRecordingOptions(new ServerCallLocator(serverCallId));
-                    recordingOptions.RecordingChannel = Mapper.RecordingChannelMap.TryGetValue(recordingChannel, out recChannelVal) ? recChannelVal : RecordingChannel.Mixed;
-                    recordingOptions.RecordingContent = Mapper.RecordingContentMap.TryGetValue(recordingContent, out recContentVal) ? recContentVal : RecordingContent.AudioVideo;
-                    recordingOptions.RecordingFormat = Mapper.RecordingFormatMap.TryGetValue(recordingFormat, out recFormatVal) ? recFormatVal : RecordingFormat.Mp4;
-                  
-                    var startRecordingResponse = await callAutomationClient.GetCallRecording()
-                        .StartRecordingAsync(recordingOptions).ConfigureAwait(false);
-
-                    Logger.LogInformation($"StartRecordingAudioAsync response -- >  {startRecordingResponse.GetRawResponse()}, Recording Id: {startRecordingResponse.Value.RecordingId}");
-
-                    var recordingId = startRecordingResponse.Value.RecordingId;
-                    if (!recordingData.ContainsKey(serverCallId))
-                    {
-                        recordingData.Add(serverCallId, string.Empty);
-                    }
-                    recordingData[serverCallId] = recordingId;
-
-                    return Json(recordingId);
-                }
-                else
-                {
-                    return BadRequest(new { Message = "serverCallId is invalid" });
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.Contains(CallRecodingActiveErrorCode))
-                {
-                    return BadRequest(new { Message = CallRecodingActiveError });
-                }
-                return Json(new { Exception = ex });
-            }
-        }
-
         /// <summary>
         /// Method to pause call recording
         /// </summary>
@@ -397,21 +338,6 @@ namespace QuickStartApi.Controllers
                 recFileFormat = deserializedFilePath.recordingInfo.format;
 
                 Logger.LogInformation($"Recording File Format is -- > {recFileFormat}");
-            }
-
-            Logger.LogInformation($"Starting to upload {downloadType} to BlobStorage into container -- > {containerName}");
-
-            var blobStorageHelperInfo = await BlobStorageHelper.UploadFileAsync(blobStorageConnectionString, containerName, filePath, filePath);
-            if (blobStorageHelperInfo.Status)
-            {
-                Logger.LogInformation(blobStorageHelperInfo.Message);
-                Logger.LogInformation($"Deleting temporary {downloadType} file being created");
-
-                System.IO.File.Delete(filePath);
-            }
-            else
-            {
-                Logger.LogError($"{downloadType} file was not uploaded,{blobStorageHelperInfo.Message}");
             }
 
             return true;
