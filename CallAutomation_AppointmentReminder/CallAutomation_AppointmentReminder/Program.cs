@@ -64,7 +64,7 @@ app.MapPost("/api/call", async ([Required] string targetNo, CallAutomationClient
                 var response = await callAutomationClient.CreateCallAsync(createCallOption).ConfigureAwait(false);
                 logger.LogInformation($"Reponse from create call: {response.GetRawResponse()}" +
                     $"CallConnection Id : {response.Value.CallConnection.CallConnectionId}");
-                SourceId = response.Value.CallConnectionProperties.SourceIdentity.RawId;
+                SourceId = response.Value.CallConnectionProperties.Source.RawId;
             }
         }
     }
@@ -110,7 +110,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
 
             var properties = callConnection.GetCallConnectionProperties();
-            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceIdentity.RawId}," +
+            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.Source.RawId}," +
                 $"CallConnection State : {properties.Value.CallConnectionState}");
             logger.LogInformation($"targets ------->");
             foreach (var target in properties.Value.Targets)
@@ -141,13 +141,13 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             {
                 var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration);
                 // Play audio for dtmf response
-                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "AgentConnect", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "AgentConnect", Loop = false });
             }
             else
             {
                 var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration);
                 // Play audio for dtmf response
-                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "ResponseToDtmf", Loop = false });
             }
         }
         if (@event is PlayCompleted { OperationContext: "AgentConnect" })
@@ -170,7 +170,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                     var addParticipantOptions = new AddParticipantOptions(callInvite);
                     var response = await callConnection.AddParticipantAsync(addParticipantOptions);
                     var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant));
-                    await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "addParticipant", Loop = false });
+                    await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "addParticipant", Loop = false });
                     await Task.Delay(TimeSpan.FromSeconds(10));
 
                     logger.LogInformation($"Add participant call : {response.Value.Participant}" + $"  Status of call :{response.GetRawResponse().Status}"
@@ -191,7 +191,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                 var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.TimedoutAudio));
 
                 //Play audio for time out
-                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "ResponseToDtmf", Loop = false });
             }
         }
 
