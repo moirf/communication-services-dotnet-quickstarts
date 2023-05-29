@@ -1,6 +1,5 @@
 ﻿using Azure.Communication;
 using Azure.Communication.CallAutomation;
-using CallAutomation_Playground.Controllers;
 using CallAutomation_Playground.Interfaces;
 
 namespace CallAutomation_Playground
@@ -15,8 +14,8 @@ namespace CallAutomation_Playground
         private readonly PlaygroundConfigs _playgroundConfig;
 
         public TopLevelMenuService(
-            ILogger<TopLevelMenuService> logger, 
-            CallAutomationClient callAutomation, 
+            ILogger<TopLevelMenuService> logger,
+            CallAutomationClient callAutomation,
             PlaygroundConfigs playgroundConfig)
         {
             _logger = logger;
@@ -25,7 +24,7 @@ namespace CallAutomation_Playground
         }
 
         public async Task InvokeTopLevelMenu(
-            CommunicationIdentifier originalTarget, 
+            CommunicationIdentifier originalTarget,
             CallConnection callConnection,
             string serverCallId)
         {
@@ -36,7 +35,7 @@ namespace CallAutomation_Playground
 
             try
             {
-                while(true)
+                while (true)
                 {
                     // Top Level DTMF Menu, ask for which menu to be selected
                     string selectedTone = await callingModule.RecognizeTonesAsync(
@@ -56,7 +55,7 @@ namespace CallAutomation_Playground
                             string phoneNumberToCall = await callingModule.RecognizeTonesAsync(
                                 originalTarget,
                                 10,
-                                10,
+                                12,
                                 _playgroundConfig.AllPrompts.CollectPhoneNumber,
                                 _playgroundConfig.AllPrompts.Retry);
 
@@ -87,7 +86,7 @@ namespace CallAutomation_Playground
                             string phoneNumberToTransfer = await callingModule.RecognizeTonesAsync(
                                 originalTarget,
                                 10,
-                                10,
+                                12,
                                 _playgroundConfig.AllPrompts.CollectPhoneNumber,
                                 _playgroundConfig.AllPrompts.Retry);
 
