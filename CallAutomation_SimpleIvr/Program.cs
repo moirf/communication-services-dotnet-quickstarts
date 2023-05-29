@@ -175,8 +175,9 @@ app.MapPost("/api/calls/{contextId}", async (
             else if (collectedTones.Tones[0] == DtmfTone.Four)
             {
                 PlaySource agentAudio = new FileSource(new Uri(baseUri + builder.Configuration["AgentAudio"]));
-                await callMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)agentAudio)
+                await callMedia.PlayToAllAsync(new PlayToAllOptions(new List<PlaySource> { agentAudio })
                 { OperationContext = "AgentConnect", Loop = false });
+
             }
             else if (collectedTones.Tones[0] == DtmfTone.Five)
             {
