@@ -69,7 +69,6 @@ namespace CallAutomation_Playground
                                 _playgroundConfig.AllPrompts.AddParticipantSuccess,
                                 _playgroundConfig.AllPrompts.AddParticipantFailure,
                                 _playgroundConfig.AllPrompts.Music);
-
                             _logger.LogInformation($"Add Participant finished.");
                             break;
 
@@ -123,8 +122,14 @@ namespace CallAutomation_Playground
                             await callingModule.PlayMessageThenWaitUntilItEndsAsync(_playgroundConfig.AllPrompts.PlayRecordingStarted);
                             break;
 
-                        // Option 5: Play Message and terminate the call
+                        // Option 5: Play Message and terminate the call only for the original caller.
                         case "5":
+                            _logger.LogInformation($"terminate the call only for the original caller.");
+                            await callConnection.HangUpAsync(false);
+                            break;
+
+                        // Option 6: Play Message and terminate the call
+                        case "6":
                             _logger.LogInformation($"Terminating Call. Due to wrong input too many times, exception happened, or user requested termination.");
                             await callingModule.PlayMessageThenWaitUntilItEndsAsync(_playgroundConfig.AllPrompts.Goodbye);
                             await callingModule.TerminateCallAsync();
@@ -151,5 +156,6 @@ namespace CallAutomation_Playground
             await callingModule.TerminateCallAsync();
             return;
         }
+
     }
 }
