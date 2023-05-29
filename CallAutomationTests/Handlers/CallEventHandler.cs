@@ -18,12 +18,9 @@ namespace CallAutomation.Scenarios.Handlers
         IEventCloudEventHandler<AddParticipantSucceeded>,
         IEventCloudEventHandler<CallConnected>,
         IEventCloudEventHandler<CallDisconnected>,
-        IEventCloudEventHandler<CallTransferAccepted>,
-        IEventCloudEventHandler<CallTransferFailed>,
         IEventCloudEventHandler<ParticipantsUpdated>,
         IEventCloudEventHandler<PlayCompleted>,
         IEventCloudEventHandler<PlayFailed>,
-        IEventCloudEventHandler<PlayCanceled>,
         IEventCloudEventHandler<RecognizeCompleted>,
         IEventCloudEventHandler<RecognizeFailed>,
         IEventCloudEventHandler<RecognizeCanceled>,
@@ -123,25 +120,13 @@ namespace CallAutomation.Scenarios.Handlers
 
                     if (operationContext == Constants.OperationContext.AgentJoining)
                     {
-                        _logger.LogInformation($"Attempting to stop hold music");
+                        //_logger.LogInformation($"Attempting to stop hold music");
 
                         var callConnectionId = addParticipantSucceeded.CallConnectionId;
 
                         _callContextService.AddAgentAcsId(callConnectionId, addParticipantSucceeded.Participant.RawId);
                     }
-                    else if (operationContext == Constants.OperationContext.SupervisorJoining)
-                    {
-                        _logger.LogInformation($"Adding supervisor to call.");
-                        var callConnectionId = addParticipantSucceeded.CallConnectionId;
-                        var callConnection = _callAutomationService.GetCallConnection(callConnectionId);
-                        callConnection.MuteParticipants(addParticipantSucceeded.Participant, operationContext);
-
-                        _callContextService.AddAgentAcsId(callConnectionId, addParticipantSucceeded.Participant.RawId);
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"AddParticipantSucceeded for a non-agent. Call ID was '{addParticipantSucceeded.CorrelationId}'");
-                    }
+                  
 
                     return Task.CompletedTask;
                 }
@@ -162,11 +147,7 @@ namespace CallAutomation.Scenarios.Handlers
 
                 var operationContext = callConnected.OperationContext;
 
-                if (operationContext == Constants.OperationContext.AgentJoining || operationContext == Constants.OperationContext.SupervisorJoining)
-                {
-                    _logger.LogCritical($"CallConnected was for an agent or supervisor, callerId was '{callerId}'. Set the allowlist to prevent accepting calls from the IVR.");
-                    return;
-                }
+               
 
                 var callId = callConnected.CorrelationId;
                 var callConnectionId = callConnected.CallConnectionId;
@@ -194,17 +175,7 @@ namespace CallAutomation.Scenarios.Handlers
                     var ivrConfig = _callAutomationService.GetIvrConfig();
                     var textToSpeechLocale = ivrConfig["TextToSpeechLocale"];
 
-                    // Recognized phone number
-                    if (ivrConfig.GetValue<bool>("UseNlu") && ivrConfig.GetValue<bool>("UseAiPairing"))
-                    {
-                        _logger.LogInformation("Caller ID was recognized, sending to AI pairing immediately");
-                        //await PromptCustomerForAiPairing(callConnection, textToSpeechLocale, callerId);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Caller ID was recognized, sending to IVR immediately");
-                        await PlayMainMenu(callConnection, textToSpeechLocale, callerId, prerollText);
-                    }
+                   
 
                 }
             }
@@ -264,15 +235,7 @@ namespace CallAutomation.Scenarios.Handlers
             }
         }
 
-        public Task Handle(CallTransferAccepted callTransferAccepted, string callerId)
-        {
-            throw new NotImplementedException();
-        }
 
-        public Task Handle(CallTransferFailed callTransferFailed, string callerId)
-        {
-            throw new NotImplementedException();
-        }
 
         public async Task Handle(ParticipantsUpdated participantsUpdated, string callerId)
         {
@@ -416,15 +379,7 @@ namespace CallAutomation.Scenarios.Handlers
             }
         }
 
-        public Task Handle(PlayCanceled playCanceled, string callerId)
-        {
-            using (_logger.BeginScope(GetLogContext(playCanceled.CorrelationId, playCanceled.CallConnectionId, playCanceled.OperationContext)))
-            {
-                _logger.LogInformation($"PlayCanceled received for OperationContext: '{playCanceled.OperationContext}'");
-
-                return Task.CompletedTask;
-            }
-        }
+        
 
         public async Task Handle(RecognizeCompleted recognizeCompleted, string callerId)
         {
