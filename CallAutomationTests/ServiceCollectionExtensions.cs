@@ -17,13 +17,11 @@ namespace CallAutomation.Scenarios
             services.AddSingleton<IEventCloudEventHandler<AddParticipantFailed>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<AddParticipantSucceeded>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<CallConnected>, CallEventHandler>();
-            services.AddSingleton<IEventCloudEventHandler<CallDisconnected>, CallEventHandler>();
-            services.AddSingleton<IEventCloudEventHandler<CallTransferAccepted>, CallEventHandler>();
-            services.AddSingleton<IEventCloudEventHandler<CallTransferFailed>, CallEventHandler>();
+            services.AddSingleton<IEventCloudEventHandler<CallDisconnected>, CallEventHandler>();   
             services.AddSingleton<IEventCloudEventHandler<ParticipantsUpdated>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<PlayCompleted>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<PlayFailed>, CallEventHandler>();
-            services.AddSingleton<IEventCloudEventHandler<PlayCanceled>, CallEventHandler>();
+            
             services.AddSingleton<IEventCloudEventHandler<RecognizeCompleted>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<RecognizeFailed>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<RecognizeCanceled>, CallEventHandler>();
