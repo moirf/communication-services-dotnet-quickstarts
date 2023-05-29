@@ -139,9 +139,10 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             DtmfTone toneDetected = ((DtmfResult)recognizeCompletedEvent.RecognizeResult).Tones[0];
             if (toneDetected == DtmfTone.Three)
             {
-                var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration);
+                var playSource = new List<PlaySource> { Utils.GetAudioForTone(toneDetected, callConfiguration) };
                 // Play audio for dtmf response
-                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "AgentConnect", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "AgentConnect", Loop = false });
+
             }
             else
             {
