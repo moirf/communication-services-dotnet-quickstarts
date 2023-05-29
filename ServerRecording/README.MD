@@ -9,7 +9,7 @@ products:
 
 # Recording APIs Sample
 
-This is a sample application to show how the Azure Communication Services Call Automation SDK can be used to build a call recording feature.
+This is a sample application to show how the Azure Communication Call Automation SDK can be used to build a call recording feature.
 
 It's a C# based application powered by Dot net core to connect this application with Azure Communication Services.
 
@@ -46,14 +46,24 @@ Call Recording enables you to record multiple calling scenarios available in Azu
 2. git clone https://github.com/Azure-Samples/Communication-Services-dotnet-quickstarts.git.
 3. Once you get the config keys add the keys to the **ServerRecording/appsetting.json**  file found under the ServerRecording folder.
 	- Input your ACS connection string in the variable: `ACSResourceConnectionString`
-	- Input your storage connection string in the variable: `BlobStorageConnectionString`
-	- Input blob container name for recorded media in the variable `BlobContainerName`
+	- Phone number associated with the Azure Communication Service resource: `SourcePhoneNumber`
+	- Base url of the app. (For local devlopment replace the dev tunnel url): `BaseUri`
 
 ## Locally Run the sample app
 
-1. Go to ServerRecording folder and open `RecordingApi.csproj` solution in Visual Studio
-2. Run `RecordingApi` project.
-3. Use postman or any debugging tool and open url - https://localhost:5001
+1. Go to ServerRecording folder and open `RecordingApi.csproj` solution in Visual Studio.
+2. Enable Visual studio dev tunneling for local development. For details, see [Enable dev tunnel] (https://learn.microsoft.com/en-us/connectors/custom-connectors/port-tunneling)
+	- To enable dev tunneling, Click `Tools` -> `Options` in Visual Studio 2022
+	- In the search bar type tunnel, Click the checkbox under `Environment` -> `Preview Features` called `Enable dev tunnels for Web Application`
+	- ![EnableDevTunnel](./data/EnableDevTunnel.png) 
+	- Login into your account under `Dev Tunnels` -> `General`
+	- ![LogInDevTunnel](./data/AddAccountForTunnel.png) 
+3. Run `RecordingApi` project.It will open Swagger UI to excute the API's.
+	-Excute the "api/call" api with the param (PSTNTargetID).
+	-After call connected,get the Server call id from Console window.
+	-Then start recording api with the param "Servercallid".
+	-follow the remaining(pauseRecording,resumeRecording & stopRecording) api's to excute with the params Servercallid & RecordingId.
+	-With the StopRecording api it will stop recording and download the Audio file on our local system.
 
 ## Publish to Azure
 

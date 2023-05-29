@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System;
 using Microsoft.Extensions.Options;
 using QuickStartApi;
+using Azure;
 
 namespace RecordingApi.Controllers
 {
@@ -35,11 +36,10 @@ namespace RecordingApi.Controllers
         /// <param name="TergetID">terget id of the call</param>
         [HttpGet]
         [Route("/api/call")]
-        public async Task<IActionResult> CreateCall([FromQuery] string PSTNTergetID)
-        {
-            targetID = PSTNTergetID;
+        public async Task<IActionResult> CreateCall([FromQuery] string PSTNTargetID)
+        {           
             var CallerId = new PhoneNumberIdentifier(SourcePhoneNumber);
-            var target = new PhoneNumberIdentifier(PSTNTergetID);
+            var target = new PhoneNumberIdentifier(PSTNTargetID);
             var callInvite = new CallInvite(target, CallerId);
 
             var createCallOption = new CreateCallOptions(callInvite, new Uri(BaseUri));
@@ -65,6 +65,8 @@ namespace RecordingApi.Controllers
                     
                     if (@event is CallConnected)
                     {
+                        
+                        Logger.LogInformation($"Server Call Id: {@event.ServerCallId}");
                         return Json(@event.ServerCallId);
 
                     }

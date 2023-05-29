@@ -16,8 +16,6 @@ namespace QuickStartApi.Controllers
     [Route("/recording")]
     public class CallRecordingController : Controller
     {
-        private readonly string blobStorageConnectionString;
-        private readonly string containerName;
         private readonly CallAutomationClient callAutomationClient;
         private const string CallRecodingActiveErrorCode = "8553";
         private const string CallRecodingActiveError = "Recording is already in progress, one recording can be active at one time.";
@@ -27,8 +25,6 @@ namespace QuickStartApi.Controllers
 
         public CallRecordingController(IConfiguration configuration, ILogger<CallRecordingController> logger)
         {
-            blobStorageConnectionString = configuration["BlobStorageConnectionString"];
-            containerName = configuration["BlobContainerName"];
             callAutomationClient = new CallAutomationClient(configuration["ACSResourceConnectionString"]);
             Logger = logger;
         }
