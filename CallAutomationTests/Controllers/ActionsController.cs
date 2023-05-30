@@ -1,5 +1,4 @@
-﻿using Azure.Communication.CallAutomation;
-using CallAutomation.Scenarios.Handlers;
+﻿using CallAutomation.Scenarios.Handlers;
 using CallAutomation.Scenarios.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,19 +7,14 @@ namespace CallAutomation.Scenarios.Controllers
     [ApiController]
     public class ActionsController : ControllerBase
     {
-        private readonly ILogger _logger;
-        private readonly EventConverter _eventConverter;
         private readonly IEventActionEventHandler<OutboundCallContext> _outboundCallActionHandler;
         private readonly IEventActionEventHandler<RecordingContext> _recordingActionHandler;
 
-        public ActionsController(ILogger<EventsController> logger,
-            EventConverter eventConverter,
+        public ActionsController(
             IEventActionEventHandler<OutboundCallContext> outboundCallActionHandler,
             IEventActionEventHandler<RecordingContext> recordingActionHandler)
 
         {
-            _logger = logger;
-            _eventConverter = eventConverter;
             _outboundCallActionHandler = outboundCallActionHandler;
             _recordingActionHandler = recordingActionHandler;
 

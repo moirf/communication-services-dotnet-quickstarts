@@ -14,8 +14,6 @@ namespace CallAutomation.Scenarios.Controllers
         private readonly IEventCloudEventHandler<AddParticipantSucceeded> _addParticipantSucceededEventHandler;
         private readonly IEventCloudEventHandler<CallConnected> _callConnectedEventHandler;
         private readonly IEventCloudEventHandler<CallDisconnected> _callDisconnectedEventHandler;
-        private readonly IEventCloudEventHandler<CallTransferAccepted> _callTransferAcceptedEventHandler;
-        private readonly IEventCloudEventHandler<CallTransferFailed> _callTransferFailedEventHandler;
         private readonly IEventCloudEventHandler<ParticipantsUpdated> _participantsUpdatedEventHandler;
         private readonly IEventCloudEventHandler<PlayCompleted> _playCompletedEventHandler;
         private readonly IEventCloudEventHandler<PlayFailed> _playFailedEventHandler;
@@ -32,8 +30,6 @@ namespace CallAutomation.Scenarios.Controllers
             IEventCloudEventHandler<AddParticipantSucceeded> addParticipantSucceededEventHandler,
             IEventCloudEventHandler<CallConnected> callConnectedEventHandler,
             IEventCloudEventHandler<CallDisconnected> callDisconnectedEventHandler,
-            IEventCloudEventHandler<CallTransferAccepted> callTransferAcceptedEventHandler,
-            IEventCloudEventHandler<CallTransferFailed> callTransferFailedEventHandler,
             IEventCloudEventHandler<ParticipantsUpdated> participantsUpdatedEventHandler,
             IEventCloudEventHandler<PlayCompleted> playCompletedEventHandler,
             IEventCloudEventHandler<PlayFailed> playFailedEventHandler,
@@ -51,8 +47,6 @@ namespace CallAutomation.Scenarios.Controllers
             _addParticipantSucceededEventHandler = addParticipantSucceededEventHandler;
             _callConnectedEventHandler = callConnectedEventHandler;
             _callDisconnectedEventHandler = callDisconnectedEventHandler;
-            _callTransferAcceptedEventHandler = callTransferAcceptedEventHandler;
-            _callTransferFailedEventHandler = callTransferFailedEventHandler;
             _participantsUpdatedEventHandler = participantsUpdatedEventHandler;
             _playCompletedEventHandler = playCompletedEventHandler;
             _playFailedEventHandler = playFailedEventHandler;
