@@ -170,7 +170,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                     }
                     var addParticipantOptions = new AddParticipantOptions(callInvite);
                     var response = await callConnection.AddParticipantAsync(addParticipantOptions);
-                    var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant));
+                    var playSource = new PlaySource[] { new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant)) };
                     await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "addParticipant", Loop = false });
                     await Task.Delay(TimeSpan.FromSeconds(10));
 
