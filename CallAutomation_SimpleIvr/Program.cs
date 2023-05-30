@@ -222,8 +222,14 @@ app.MapPost("/api/calls/{contextId}", async (
                     var addParticipantOptions = new AddParticipantOptions(callInvite);
                     var response = await callConnection.AddParticipantAsync(addParticipantOptions);
                     //var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant));
-                    PlaySource agentAudio = new FileSource(new Uri(baseUri + builder.Configuration["AddParticipant"]));
-                    await callMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)agentAudio) { OperationContext = "addParticipant", Loop = false });
+                    List<PlaySource> playSources = new List<PlaySource>();
+
+                    // Add the FileSource to the list
+                    var fileSource = new FileSource(new Uri(baseUri + builder.Configuration["AddParticipant"]));
+                    playSources.Add(fileSource);
+
+                    // Pass the list of PlaySources to PlayToAllAsync
+                    await callMedia.PlayToAllAsync(new PlayToAllOptions(playSources) { OperationContext = "addParticipant", Loop = false });
 
                     TimeSpan InterToneTimeout = TimeSpan.FromSeconds(20);
                     TimeSpan InitialSilenceTimeout = TimeSpan.FromSeconds(10);
