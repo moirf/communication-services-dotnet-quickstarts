@@ -35,7 +35,6 @@ namespace CallAutomation.Scenarios.Handlers
         private readonly ICallAutomationService _callAutomationService;
         private readonly ICallContextService _callContextService;
         private readonly ITelemetryService _telemetryService;
-        public static string recFileFormat;
 
         public CallEventHandler(
             IConfiguration configuration,
@@ -57,7 +56,7 @@ namespace CallAutomation.Scenarios.Handlers
             {
                 _logger.LogInformation("IncomingCallEvent received");
 
-                var to = incomingCallEvent.To.RawId;
+                var to = incomingCallEvent?.To?.RawId;
                 var allowList = _callAutomationService.GetAllowedIncomingIdentitiesList();
 
                 if (allowList == null || allowList.Length == 0)
@@ -73,7 +72,7 @@ namespace CallAutomation.Scenarios.Handlers
                     var callConnectionId = answerCallResult.CallConnectionProperties.CallConnectionId;
 
                     // store the customer's MRI
-                    var callerAcsId = incomingCallEvent.From.RawId;
+                    var callerAcsId = incomingCallEvent?.From?.RawId;
                     _callContextService.SetCustomerAcsId(callConnectionId, callerAcsId);
                 }
             }
@@ -166,52 +165,13 @@ namespace CallAutomation.Scenarios.Handlers
                 _logger.LogDebug($"CallConnected received, with callerId : {callerId}");
 
                 var operationContext = callConnected.OperationContext;
-
-                if (operationContext == Constants.OperationContext.AgentJoining || operationContext == Constants.OperationContext.SupervisorJoining)
-                {
-                    _logger.LogCritical($"CallConnected was for an agent or supervisor, callerId was '{callerId}'. Set the allowlist to prevent accepting calls from the IVR.");
-                    return;
-                }
-
                 var callId = callConnected.CorrelationId;
                 var callConnectionId = callConnected.CallConnectionId;
-
-
                 var callConnection = _callAutomationService.GetCallConnection(callConnected.CallConnectionId);
                 var callMedia = callConnection.GetCallMedia();
 
-                _logger.LogInformation($"Call connected with ID '{callId}'");
-
-                var ivrText = _callAutomationService.GetIvrText();
-
-                if (callConnected.OperationContext?.StartsWith(Constants.OperationContext.ScheduledCallbackDialout) ?? false)
-                {
-                    _logger.LogInformation($"CallConnected was for a customer callback request");
-
-                    var ivrConfig = _callAutomationService.GetIvrConfig();
-                    var textToSpeechLocale = ivrConfig["TextToSpeechLocale"];
-                    await _callAutomationService.PlayCallbackDialoutOptionsAsync(callerId, callMedia, textToSpeechLocale);
-                }
-                else
-                {
-                    var prerollText = ivrText[Constants.IvrTextKeys.Greeting];
-
-                    var ivrConfig = _callAutomationService.GetIvrConfig();
-                    var textToSpeechLocale = ivrConfig["TextToSpeechLocale"];
-
-                    // Recognized phone number
-                    if (ivrConfig.GetValue<bool>("UseNlu") && ivrConfig.GetValue<bool>("UseAiPairing"))
-                    {
-                        _logger.LogInformation("Caller ID was recognized, sending to AI pairing immediately");
-                        //await PromptCustomerForAiPairing(callConnection, textToSpeechLocale, callerId);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("Caller ID was recognized, sending to IVR immediately");
-                        await PlayMainMenu(callConnection, textToSpeechLocale, callerId, prerollText);
-                    }
-
-                }
+                _logger.LogDebug($"Play hold music for reocrding...");
+                await _callAutomationService.PlayHoldMusicAsync(Constants.OperationContext.WaitingForAgent, callMedia);
             }
         }
 
