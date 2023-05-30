@@ -126,7 +126,7 @@ namespace CallAutomation_Playground
                         case "5":
                             _logger.LogInformation($"terminate the call only for the original caller.");
                             await callConnection.HangUpAsync(false);
-                            break;
+                            return;
 
                         // Option 6: Play Message and terminate the call
                         case "6":
