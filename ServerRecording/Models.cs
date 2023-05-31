@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Azure.Communication.CallAutomation;
+using System;
 using System.Collections.Generic;
-using Azure.Communication.CallAutomation;
 
 namespace QuickStartApi
 {
@@ -75,8 +75,8 @@ namespace QuickStartApi
     public class Mapper
     {
         static Dictionary<string, RecordingContent> recContentMap
-            = new Dictionary<string, RecordingContent>() 
-                { 
+            = new Dictionary<string, RecordingContent>()
+                {
                     { "audiovideo", RecordingContent.AudioVideo },
                     { "audio", RecordingContent.Audio }
                 };
