@@ -2,74 +2,20 @@
 using System;
 using System.Collections.Generic;
 
-namespace QuickStartApi
+namespace RecordingApi
 {
-    public class BlobStorageHelperInfo
-    {
-        public string Message { set; get; }
-        public bool Status { set; get; }
-    }
-
     static class FileDownloadType
     {
-        const string recordingType = "recording";
-        const string metadataType = "metadata";
-
-        public static string Recording
-        {
-            get
-            {
-                return recordingType;
-            }
-        }
-
-        public static string Metadata
-        {
-            get
-            {
-                return metadataType;
-            }
-        }
+        public static string Recording => "recording";
+        public static string Metadata => "metadata";
     }
 
     static class FileFormat
     {
-        const string json = "json";
-        const string mp4 = "mp4";
-        const string mp3 = "mp3";
-        const string wav = "wav";
-
-        public static string Json
-        {
-            get
-            {
-                return json;
-            }
-        }
-
-        public static string Mp4
-        {
-            get
-            {
-                return mp4;
-            }
-        }
-
-        public static string Mp3
-        {
-            get
-            {
-                return mp3;
-            }
-        }
-
-        public static string Wav
-        {
-            get
-            {
-                return wav;
-            }
-        }
+        public static string Json => "json";
+        public static string Mp4 => "mp4";
+        public static string Mp3 => "mp3";
+        public static string Wav => "wav";
     }
 
     public class Mapper
