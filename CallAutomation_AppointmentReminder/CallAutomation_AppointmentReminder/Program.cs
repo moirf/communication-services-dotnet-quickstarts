@@ -146,9 +146,9 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             }
             else
             {
-                var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration);
+                var playSource = new List<PlaySource> { Utils.GetAudioForTone(toneDetected, callConfiguration) };
                 // Play audio for dtmf response
-                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "ResponseToDtmf", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
             }
         }
         if (@event is PlayCompleted { OperationContext: "AgentConnect" })
@@ -171,7 +171,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                     var addParticipantOptions = new AddParticipantOptions(callInvite);
                     var response = await callConnection.AddParticipantAsync(addParticipantOptions);
                     var playSource = new PlaySource[] { new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant)) };
-                    await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "addParticipant", Loop = false });
+                    await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "addParticipant", Loop = false });
                     await Task.Delay(TimeSpan.FromSeconds(10));
 
                     logger.LogInformation($"Add participant call : {response.Value.Participant}" + $"  Status of call :{response.GetRawResponse().Status}"
@@ -189,10 +189,10 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             if (recognizeFailedEvent.ReasonCode.Equals(MediaEventReasonCode.RecognizeInitialSilenceTimedOut))
             {
                 logger.LogInformation($"Recognition timed out for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
-                var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.TimedoutAudio));
+                var playSource = new List<PlaySource> { new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.TimedoutAudio)) };
 
                 //Play audio for time out
-                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions((IEnumerable<PlaySource>)playSource) { OperationContext = "ResponseToDtmf", Loop = false });
+                await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
             }
         }
 
