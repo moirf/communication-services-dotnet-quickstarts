@@ -76,7 +76,7 @@ app.MapPost("/api/incomingCall", async (
             else
             {
                 AnswerCallResult answerCallResult = await client.AnswerCallAsync(incomingCallContext, callbackUri); 
-                logger.LogInformation($"answerCall Response ------->  source callerId {answerCallResult.CallConnectionProperties.SourceCallerIdNumber.RawId}");
+                logger.LogInformation($"answerCall Response ------->  source callerId {answerCallResult.CallConnectionProperties.Source.RawId}");
                 logger.LogInformation($"targets ------->");
                 foreach (var target in answerCallResult.CallConnectionProperties.Targets)
                 {
@@ -129,7 +129,7 @@ app.MapPost("/api/calls/{contextId}", async (
             logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
 
             var properties = callConnection.GetCallConnectionProperties();
-            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceCallerIdNumber.RawId}," +
+            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.Source.RawId}," +
                 $"CallConnection State : {properties.Value.CallConnectionState}");
             logger.LogInformation($"targets ------->");
             foreach (var target in properties.Value.Targets)
