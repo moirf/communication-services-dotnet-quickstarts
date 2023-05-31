@@ -19,8 +19,6 @@ namespace CallAutomation.Scenarios.Handlers
         IEventCloudEventHandler<AddParticipantSucceeded>,
         IEventCloudEventHandler<CallConnected>,
         IEventCloudEventHandler<CallDisconnected>,
-        IEventCloudEventHandler<CallTransferAccepted>,
-        IEventCloudEventHandler<CallTransferFailed>,
         IEventCloudEventHandler<ParticipantsUpdated>,
         IEventCloudEventHandler<PlayCompleted>,
         IEventCloudEventHandler<PlayFailed>,
@@ -225,16 +223,6 @@ namespace CallAutomation.Scenarios.Handlers
                     throw;
                 }
             }
-        }
-
-        public Task Handle(CallTransferAccepted callTransferAccepted, string callerId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task Handle(CallTransferFailed callTransferFailed, string callerId)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task Handle(ParticipantsUpdated participantsUpdated, string callerId)
