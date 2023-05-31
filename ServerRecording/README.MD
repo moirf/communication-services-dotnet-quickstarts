@@ -58,12 +58,16 @@ Call Recording enables you to record multiple calling scenarios available in Azu
 	- ![EnableDevTunnel](./data/EnableDevTunnel.png) 
 	- Login into your account under `Dev Tunnels` -> `General`
 	- ![LogInDevTunnel](./data/AddAccountForTunnel.png) 
-3. Run `RecordingApi` project.It will open Swagger UI to excute the API's.
-	-Excute the "api/call" api with the param (PSTNTargetID).
-	-After call connected,get the Server call id from Console window.
-	-Then start recording api with the param "Servercallid".
-	-follow the remaining(pauseRecording,resumeRecording & stopRecording) api's to excute with the params Servercallid & RecordingId.
-	-With the StopRecording api it will stop recording and download the Audio file on our local system.
+3. Run the application in debug mode, swagger url should open.
+
+## Step by step swagger api calls to test locally.
+
+1.invoke api/call under Outbound section.
+2.accept the call on provided pstn phone.
+3.get server call id from your log.
+4.Then invoke recording api with the parameters "Servercallid".
+5.follow the remaining(pauseRecording,resumeRecording & stopRecording) api's to excute with the parameters Servercallid & RecordingId.
+6.With the StopRecording api it will stop recording and download the Audio file on our local system.
 
 ## Publish to Azure
 
