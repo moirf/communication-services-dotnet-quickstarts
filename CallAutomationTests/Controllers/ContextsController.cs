@@ -13,24 +13,24 @@ namespace CallAutomation.Scenarios.Controllers
             _callContextService = callContextService;
         }
 
-        [HttpGet("recordings/{serverCallId}", Name = "GetRecording_Context")]
+        [HttpGet("recordingcontext", Name = "GetRecording_Context")]
         public IActionResult GetRecordingContext([FromRoute] string serverCallId)
         {
             var recordingContext = _callContextService.GetRecordingContext(serverCallId);
             return new JsonResult(recordingContext);
         }
 
-        [HttpPatch("recordings/{serverCallId}", Name = "SetRecording_Context")]
-        public IActionResult SetRecordingContext([FromBody] RecordingContext recordingContext, [FromRoute] string serverCallId)
+        [HttpPatch("recordingcontext", Name = "SetRecording_Context")]
+        public IActionResult SetRecordingContext([FromBody] RecordingContext recordingContext)
         {
-            _callContextService.SetRecordingContext(serverCallId, recordingContext);
+            _callContextService.SetRecordingContext(recordingContext.ServerCallId, recordingContext);
             return new OkResult();
         }
 
-        [HttpDelete("recordingcontext/{serverCallId}", Name = "DeleteRecording_Context")]
-        public IActionResult DeleteRecordingContext([FromRoute] string serverCallId)
+        [HttpDelete("recordingcontext", Name = "DeleteRecording_Context")]
+        public IActionResult DeleteRecordingContext([FromBody] RecordingContext recordingContext)
         {
-            _callContextService.DeleteRecordingContext(serverCallId);
+            _callContextService.DeleteRecordingContext(recordingContext.ServerCallId);
             return new OkResult();
         }
     }

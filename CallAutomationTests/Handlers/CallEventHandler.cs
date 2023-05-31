@@ -57,11 +57,6 @@ namespace CallAutomation.Scenarios.Handlers
                 var to = incomingCallEvent?.To?.RawId;
                 var allowList = _callAutomationService.GetAllowedIncomingIdentitiesList();
 
-                if (allowList == null || allowList.Length == 0)
-                {
-                    _logger.LogCritical("IncomingCall invoked with an empty allow list. Set your allowed incoming communication identifiers or the server will accept calls from itself!");
-                }
-
                 if (allowList == null || allowList.Any(x => to.EndsWith(x, StringComparison.OrdinalIgnoreCase)))
                 {
                     _logger.LogInformation($"Accepting call for {to}");
@@ -973,29 +968,14 @@ namespace CallAutomation.Scenarios.Handlers
                 }
 
                 var eventData = recordingFileStatusUpdatedEvent;
-
-                //Logger.LogInformation("Microsoft.Communication.RecordingFileStatusUpdated response  -- >" + eventData);
-                //Logger.LogInformation("Start processing metadata -- >");
-
-                var response = _callAutomationService.ProcessFile(eventData.RecordingStorageInfo.RecordingChunks[0].MetadataLocation,
-                     eventData.RecordingStorageInfo.RecordingChunks[0].DocumentId,
-                     FileFormat.Json,
-                     FileDownloadType.Metadata);
-
-                //Logger.LogInformation("Start processing recorded media -- >" + response);
-
-                //response = _callAutomationService.ProcessFile(eventData.RecordingStorageInfo.RecordingChunks[0].ContentLocation,
-                //    eventData.RecordingStorageInfo.RecordingChunks[0].DocumentId,
-                //    string.IsNullOrWhiteSpace(recFileFormat) ? FileFormat.Mp4 : recFileFormat,
-                //    FileDownloadType.Recording);
-                return response;
-
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "get record failed unexpectedly");
                 throw;
             }
+
+            return Task.CompletedTask;
         }
 
         #endregion

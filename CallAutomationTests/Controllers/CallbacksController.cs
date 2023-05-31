@@ -51,8 +51,6 @@ namespace CallAutomation.Scenarios.Controllers
             _playCompletedEventHandler = playCompletedEventHandler;
             _playFailedEventHandler = playFailedEventHandler;
             _playCanceledEventHandler = playCanceledEventHandler;
-            _callConnectedEventHandler = callConnectedEventHandler;
-            _callDisconnectedEventHandler = callDisconnectedEventHandler;
             _recognizeCanceledEventHandler = recognizeCanceledEventHandler;
             _recognizeCompletedEventHandler = recognizeCompletedEventHandler;
             _recognizeFailedEventHandler = recognizeFailedEventHandler;
@@ -138,7 +136,7 @@ namespace CallAutomation.Scenarios.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError($"Failed to handle event {ex}");
-                    return new BadRequestResult();
+                    //return new BadRequestResult();
                 }
             }
             return new OkResult();
