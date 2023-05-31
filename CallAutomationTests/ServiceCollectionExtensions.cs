@@ -21,7 +21,6 @@ namespace CallAutomation.Scenarios
             services.AddSingleton<IEventCloudEventHandler<ParticipantsUpdated>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<PlayCompleted>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<PlayFailed>, CallEventHandler>();
-            services.AddSingleton<IEventCloudEventHandler<PlayCanceled>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<RecognizeCompleted>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<RecognizeFailed>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<RecognizeCanceled>, CallEventHandler>();

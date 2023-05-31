@@ -22,7 +22,6 @@ namespace CallAutomation.Scenarios.Handlers
         IEventCloudEventHandler<ParticipantsUpdated>,
         IEventCloudEventHandler<PlayCompleted>,
         IEventCloudEventHandler<PlayFailed>,
-        IEventCloudEventHandler<PlayCanceled>,
         IEventCloudEventHandler<RecognizeCompleted>,
         IEventCloudEventHandler<RecognizeFailed>,
         IEventCloudEventHandler<RecognizeCanceled>,
@@ -120,24 +119,19 @@ namespace CallAutomation.Scenarios.Handlers
                 try
                 {
                     var operationContext = addParticipantSucceeded.OperationContext;
-
+                    var callConnectionId = addParticipantSucceeded.CallConnectionId;
+                    var callConnection = _callAutomationService.GetCallConnection(callConnectionId);
                     _logger.LogInformation($"AddParticipantSucceeded received for OperationContext '{operationContext}'");
 
                     if (operationContext == Constants.OperationContext.AgentJoining)
                     {
                         _logger.LogInformation($"Attempting to stop hold music");
-
-                        var callConnectionId = addParticipantSucceeded.CallConnectionId;
-
                         _callContextService.AddAgentAcsId(callConnectionId, addParticipantSucceeded.Participant.RawId);
                     }
                     else if (operationContext == Constants.OperationContext.SupervisorJoining)
                     {
                         _logger.LogInformation($"Adding supervisor to call.");
-                        var callConnectionId = addParticipantSucceeded.CallConnectionId;
-                        var callConnection = _callAutomationService.GetCallConnection(callConnectionId);
                         callConnection.MuteParticipants(addParticipantSucceeded.Participant, operationContext);
-
                         _callContextService.AddAgentAcsId(callConnectionId, addParticipantSucceeded.Participant.RawId);
                     }
                     else
@@ -161,10 +155,6 @@ namespace CallAutomation.Scenarios.Handlers
             using (_logger.BeginScope(GetLogContext(callConnected.CorrelationId, callConnected.CallConnectionId, callConnected.OperationContext)))
             {
                 _logger.LogDebug($"CallConnected received, with callerId : {callerId}");
-
-                var operationContext = callConnected.OperationContext;
-                var callId = callConnected.CorrelationId;
-                var callConnectionId = callConnected.CallConnectionId;
                 var callConnection = _callAutomationService.GetCallConnection(callConnected.CallConnectionId);
                 var callMedia = callConnection.GetCallMedia();
 
@@ -192,26 +182,7 @@ namespace CallAutomation.Scenarios.Handlers
                     }
 
                     _callContextService.RemoveCustomerId(callConnectionId);
-                    _callContextService.RemoveCustomerAcsId(callConnectionId);
-                    _callContextService.RemoveAgentAcsAcsIds(callConnectionId);
-                    _callContextService.RemoveEstimatedWaitTime(callConnectionId);
-                    _callContextService.RemoveClassification(callConnectionId);
-
-                    if (_callAutomationService.GetIvrConfig().GetValue<bool>("UseNlu"))
-                    {
-                        _callContextService.RemoveAccountIdSpeechRecognizerCancellationTokenSource(callConnectionId);
-                        _callContextService.RemovePairingSpeechRecognizerCancellationTokenSource(callConnectionId);
-                        _callContextService.RemoveMainMenuSpeechRecognizerCancellationTokenSource(callConnectionId);
-
-                        // remove audiostream
-                        var mediaSubscriptionId = _callContextService.GetMediaSubscriptionId(callConnectionId);
-                        if (!string.IsNullOrWhiteSpace(mediaSubscriptionId))
-                        {
-                            _callContextService.RemoveAudioStream(mediaSubscriptionId);
-                            _callContextService.RemoveMediaSubscriptionId(callConnectionId);
-                            _callContextService.RemoveCallSummary(callConnectionId);
-                        }
-                    }
+                    CustomerHangUpHandler(callConnectionId);
                 }
                 catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.NotFound)
                 {
@@ -249,27 +220,7 @@ namespace CallAutomation.Scenarios.Handlers
                         // customer hung up
                         else
                         {
-                            _callContextService.RemoveCustomerId(callConnectionId);
-                            _callContextService.RemoveCustomerAcsId(callConnectionId);
-                            _callContextService.RemoveAgentAcsAcsIds(callConnectionId);
-                            _callContextService.RemoveEstimatedWaitTime(callConnectionId);
-                            _callContextService.RemoveClassification(callConnectionId);
-
-                            if (_callAutomationService.GetIvrConfig().GetValue<bool>("UseNlu"))
-                            {
-                                _callContextService.RemoveAccountIdSpeechRecognizerCancellationTokenSource(callConnectionId);
-                                _callContextService.RemovePairingSpeechRecognizerCancellationTokenSource(callConnectionId);
-                                _callContextService.RemoveMainMenuSpeechRecognizerCancellationTokenSource(callConnectionId);
-
-                                // remove audiostream
-                                var mediaSubscriptionId = _callContextService.GetMediaSubscriptionId(callConnectionId);
-                                if (!string.IsNullOrWhiteSpace(mediaSubscriptionId))
-                                {
-                                    _callContextService.RemoveAudioStream(mediaSubscriptionId);
-                                    _callContextService.RemoveMediaSubscriptionId(callConnectionId);
-                                    _callContextService.RemoveCallSummary(callConnectionId);
-                                }
-                            }
+                            CustomerHangUpHandler(callConnectionId);
 
                             // await CleanupCallJob(callId);
 
@@ -364,16 +315,6 @@ namespace CallAutomation.Scenarios.Handlers
                 _logger.LogInformation($"PlayFailed routing call ID '{callId}' to all agents queue");
 
                 await _callAutomationService.PlayMenuChoiceAsync(DtmfTone.Zero, callMedia, ivrConfig["TextToSpeechLocale"]);
-            }
-        }
-
-        public Task Handle(PlayCanceled playCanceled, string callerId)
-        {
-            using (_logger.BeginScope(GetLogContext(playCanceled.CorrelationId, playCanceled.CallConnectionId, playCanceled.OperationContext)))
-            {
-                _logger.LogInformation($"PlayCanceled received for OperationContext: '{playCanceled.OperationContext}'");
-
-                return Task.CompletedTask;
             }
         }
 
@@ -997,7 +938,30 @@ namespace CallAutomation.Scenarios.Handlers
                 throw;
             }
         }
+        public void CustomerHangUpHandler(string callConnectionId)
+        {
+            _callContextService.RemoveCustomerId(callConnectionId);
+            _callContextService.RemoveCustomerAcsId(callConnectionId);
+            _callContextService.RemoveAgentAcsAcsIds(callConnectionId);
+            _callContextService.RemoveEstimatedWaitTime(callConnectionId);
+            _callContextService.RemoveClassification(callConnectionId);
 
+            if (_callAutomationService.GetIvrConfig().GetValue<bool>("UseNlu"))
+            {
+                _callContextService.RemoveAccountIdSpeechRecognizerCancellationTokenSource(callConnectionId);
+                _callContextService.RemovePairingSpeechRecognizerCancellationTokenSource(callConnectionId);
+                _callContextService.RemoveMainMenuSpeechRecognizerCancellationTokenSource(callConnectionId);
+
+                // remove audiostream
+                var mediaSubscriptionId = _callContextService.GetMediaSubscriptionId(callConnectionId);
+                if (!string.IsNullOrWhiteSpace(mediaSubscriptionId))
+                {
+                    _callContextService.RemoveAudioStream(mediaSubscriptionId);
+                    _callContextService.RemoveMediaSubscriptionId(callConnectionId);
+                    _callContextService.RemoveCallSummary(callConnectionId);
+                }
+            }
+        }
         #endregion
     }
 }

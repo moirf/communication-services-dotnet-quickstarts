@@ -17,7 +17,6 @@ namespace CallAutomation.Scenarios.Controllers
         private readonly IEventCloudEventHandler<ParticipantsUpdated> _participantsUpdatedEventHandler;
         private readonly IEventCloudEventHandler<PlayCompleted> _playCompletedEventHandler;
         private readonly IEventCloudEventHandler<PlayFailed> _playFailedEventHandler;
-        private readonly IEventCloudEventHandler<PlayCanceled> _playCanceledEventHandler;
         private readonly IEventCloudEventHandler<RecognizeCompleted> _recognizeCompletedEventHandler;
         private readonly IEventCloudEventHandler<RecognizeFailed> _recognizeFailedEventHandler;
         private readonly IEventCloudEventHandler<RecognizeCanceled> _recognizeCanceledEventHandler;
@@ -33,7 +32,6 @@ namespace CallAutomation.Scenarios.Controllers
             IEventCloudEventHandler<ParticipantsUpdated> participantsUpdatedEventHandler,
             IEventCloudEventHandler<PlayCompleted> playCompletedEventHandler,
             IEventCloudEventHandler<PlayFailed> playFailedEventHandler,
-            IEventCloudEventHandler<PlayCanceled> playCanceledEventHandler,
             IEventCloudEventHandler<RecognizeCompleted> recognizeCompletedEventHandler,
             IEventCloudEventHandler<RecognizeFailed> recognizeFailedEventHandler,
             IEventCloudEventHandler<RecognizeCanceled> recognizeCanceledEventHandler,
@@ -50,7 +48,6 @@ namespace CallAutomation.Scenarios.Controllers
             _participantsUpdatedEventHandler = participantsUpdatedEventHandler;
             _playCompletedEventHandler = playCompletedEventHandler;
             _playFailedEventHandler = playFailedEventHandler;
-            _playCanceledEventHandler = playCanceledEventHandler;
             _callConnectedEventHandler = callConnectedEventHandler;
             _callDisconnectedEventHandler = callDisconnectedEventHandler;
             _recognizeCanceledEventHandler = recognizeCanceledEventHandler;
@@ -117,10 +114,6 @@ namespace CallAutomation.Scenarios.Controllers
 
                         case ParticipantsUpdated participantsUpdated:
                             await _participantsUpdatedEventHandler.Handle(participantsUpdated, callerId);
-                            break;
-
-                        case PlayCanceled playCanceled:
-                            await _playCanceledEventHandler.Handle(playCanceled, callerId);
                             break;
 
                         case PlayFailed playFailed:
