@@ -52,15 +52,10 @@ namespace RecordingApi
 
             app.UseSwagger();
             app.UseSwaggerUI();
-
-
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
