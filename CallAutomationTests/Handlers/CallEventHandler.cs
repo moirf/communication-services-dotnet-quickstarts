@@ -56,13 +56,9 @@ namespace CallAutomation.Scenarios.Handlers
                 var to = incomingCallEvent?.To?.RawId;
                 var allowList = _callAutomationService.GetAllowedIncomingIdentitiesList();
 
-                if (allowList == null || allowList.Length == 0)
+                if (allowList == null || allowList.Any(x => to.EndsWith(x, StringComparison.OrdinalIgnoreCase)) || allowList.Length == 0)
                 {
                     _logger.LogCritical("IncomingCall invoked with an empty allow list. Set your allowed incoming communication identifiers or the server will accept calls from itself!");
-                }
-
-                if (allowList == null || allowList.Any(x => to.EndsWith(x, StringComparison.OrdinalIgnoreCase)))
-                {
                     _logger.LogInformation($"Accepting call for {to}");
 
                     var answerCallResult = await _callAutomationService.AnswerCallAsync(incomingCallEvent);
