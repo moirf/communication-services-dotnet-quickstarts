@@ -33,6 +33,26 @@ namespace CallAutomation.Scenarios.Handlers
         public RecordingContext() { }
     }
 
+    public class MediaSignalingContext
+    {
+        /// <summary> The call id. </summary>
+        public string? ServerCallId { get; set; }
+
+        /// <summary> The Add Participant action duration in milliseconds. </summary>
+        public double? AddParticipantDurationMS { get; set; }
+
+        /// <summary> The Remove Participant action duration in milliseconds. </summary>
+        public double? RemoveParticipantDurationMS { get; set; }
+
+        /// <summary> The Play Audio action duration in milliseconds. </summary>
+        public double? PlayAudioDurationMS { get; set; }
+
+        /// <summary> To keep track of media or signaling action - Add/Remove participant, play audio start time. </summary>
+        public DateTime? ActionStartTime { get; set; }
+
+        public MediaSignalingContext() { }
+    }
+
     public class IncomingCallEvent
     {
         public CommunicationIdentifierModel? To { get; set; }

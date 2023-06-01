@@ -12,6 +12,7 @@ namespace CallAutomation.Scenarios.Controllers
         private readonly ILogger _logger;
         private readonly IEventCloudEventHandler<AddParticipantFailed> _addParticipantFailedEventHandler;
         private readonly IEventCloudEventHandler<AddParticipantSucceeded> _addParticipantSucceededEventHandler;
+        private readonly IEventCloudEventHandler<RemoveParticipantSucceeded> _removeParticipantSucceededEventHandler;
         private readonly IEventCloudEventHandler<CallConnected> _callConnectedEventHandler;
         private readonly IEventCloudEventHandler<CallDisconnected> _callDisconnectedEventHandler;
         private readonly IEventCloudEventHandler<ParticipantsUpdated> _participantsUpdatedEventHandler;
@@ -28,6 +29,7 @@ namespace CallAutomation.Scenarios.Controllers
         public CallbacksController(ILogger<EventsController> logger,
             IEventCloudEventHandler<AddParticipantFailed> addParticipantFailedEventHandler,
             IEventCloudEventHandler<AddParticipantSucceeded> addParticipantSucceededEventHandler,
+            IEventCloudEventHandler<RemoveParticipantSucceeded> removeParticipantSucceededEventHandler,
             IEventCloudEventHandler<CallConnected> callConnectedEventHandler,
             IEventCloudEventHandler<CallDisconnected> callDisconnectedEventHandler,
             IEventCloudEventHandler<ParticipantsUpdated> participantsUpdatedEventHandler,
@@ -45,6 +47,7 @@ namespace CallAutomation.Scenarios.Controllers
             _logger = logger;
             _addParticipantFailedEventHandler = addParticipantFailedEventHandler;
             _addParticipantSucceededEventHandler = addParticipantSucceededEventHandler;
+            _removeParticipantSucceededEventHandler = removeParticipantSucceededEventHandler;
             _callConnectedEventHandler = callConnectedEventHandler;
             _callDisconnectedEventHandler = callDisconnectedEventHandler;
             _participantsUpdatedEventHandler = participantsUpdatedEventHandler;
@@ -111,6 +114,10 @@ namespace CallAutomation.Scenarios.Controllers
 
                         case AddParticipantFailed addParticipantFailed:
                             await _addParticipantFailedEventHandler.Handle(addParticipantFailed, callerId);
+                            break;
+
+                        case RemoveParticipantSucceeded removeParticipantSucceeded:
+                            await _removeParticipantSucceededEventHandler.Handle(removeParticipantSucceeded, callerId); 
                             break;
 
                         case ParticipantsUpdated participantsUpdated:

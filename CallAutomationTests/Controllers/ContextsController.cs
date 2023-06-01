@@ -33,5 +33,27 @@ namespace CallAutomation.Scenarios.Controllers
             _callContextService.DeleteRecordingContext(recordingContext.ServerCallId);
             return new OkResult();
         }
+
+
+        [HttpGet("mediasignalingcontext", Name = "GetMediaSignaling_Context")]
+        public IActionResult GetMediaSignalingContext([FromRoute] string serverCallId)
+        {
+            var recordingContext = _callContextService.GetMediaSignalingContext(serverCallId);
+            return new JsonResult(recordingContext);
+        }
+
+        [HttpPatch("mediasignalingcontext", Name = "SetMediaSignaling_Context")]
+        public IActionResult SetMediaSignalingContext([FromBody] MediaSignalingContext mediaSignalingContext)
+        {
+            _callContextService.SetMediaSignalingContext(mediaSignalingContext.ServerCallId, mediaSignalingContext);
+            return new OkResult();
+        }
+
+        [HttpDelete("mediasignalingcontext", Name = "DeleteMediaSignaling_Context")]
+        public IActionResult DeleteMediaSignalingContext([FromBody] MediaSignalingContext mediaSignalingContext)
+        {
+            _callContextService.DeleteMediaSignalingContext(mediaSignalingContext.ServerCallId);
+            return new OkResult();
+        }
     }
 }
