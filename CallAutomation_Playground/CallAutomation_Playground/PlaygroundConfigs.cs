@@ -17,11 +17,6 @@
         public string DirectOfferedPhonenumber { get; init; }
 
         /// <summary>
-        /// Scenario for hanging up the call
-        /// </summary>
-        public string HangUpScenarios { get; init; }
-
-        /// <summary>
         /// List of all prompts from this sample's business logic.
         /// These recorded prompts must be uploaded to publicily available Uri endpoint.
         /// See README for pre-generated samples that can be used for demo.

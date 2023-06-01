@@ -156,6 +156,5 @@ namespace CallAutomation_Playground
             await callingModule.TerminateCallAsync();
             return;
         }
-
     }
 }

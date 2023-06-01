@@ -69,6 +69,7 @@ namespace CallAutomation_Playground.Controllers
                     // IncomingCallContext can be used to answer the call
                     AnswerCallResult answerCallResult = await _callAutomationClient.AnswerCallAsync(incomingCallEventData.IncomingCallContext, _playgroundConfig.CallbackUri);
                     callConnectionId = answerCallResult.CallConnectionProperties.CallConnectionId;
+                    _logger.LogInformation($"CorrelationId :{answerCallResult.CallConnectionProperties.CorrelationId}");
 
                     _ = Task.Run(async () =>
                     {

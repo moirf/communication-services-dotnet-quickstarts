@@ -168,17 +168,6 @@ namespace CallAutomation_Playground
 
         public async Task TerminateCallAsync()
         {
-            //if (_playgroundConfig.HangUpScenarios == "1")
-            //{
-            //    // Terminate the call
-            //    await _callConnection.HangUpAsync(true);
-            //}
-            //if (_playgroundConfig.HangUpScenarios == "2")
-            //{
-            //    // Terminate the call for original caller
-            //    await _callConnection.HangUpAsync(true);
-            //}
-
             // Terminate the call
             await _callConnection.HangUpAsync(true);
         }

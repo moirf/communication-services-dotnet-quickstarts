@@ -24,7 +24,6 @@ PlaygroundConfigs playgroundConfig = new PlaygroundConfigs
 {
     CallbackUri = new Uri(callbackUriHost + "api/event"),
     DirectOfferedPhonenumber = ReadingConfigs(builder, "DIRECT_OFFERED_PHONE_NUMBER"),
-    HangUpScenarios = ReadingConfigs(builder, "HANGUP_SCENARIOS"),
     AllPrompts = new PlaygroundConfigs.Prompts
     {
         MainMenu = new Uri(ReadingConfigs(builder, "PROMPT_MAIN_MENU")),
