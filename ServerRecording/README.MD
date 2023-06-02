@@ -16,13 +16,13 @@ A separate branch with end to end implementation is [available](https://github.c
 - [.NET7](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) (Make sure to install version that corresponds with your visual studio instance, 32 vs 64 bit)
 - Create an Azure Communication Services resource. For details, see [Create an Azure Communication Resource](https://docs.microsoft.com/azure/communication-services/quickstarts/create-communication-resource). You'll need to record your resource **connection string** for this sample.
 - Enable Visual studio dev tunneling for local development. For details, see   [Enable dev tunnel] (https://learn.microsoft.com/en-us/connectors/custom-connectors/port-tunneling)
-	
+
 	- To enable dev tunneling, Click `Tools` -> `Options` in Visual Studio 2022.  In the search bar type tunnel, Click the checkbox under `Environment` -> `Preview Features` called `Enable dev tunnels for Web Application`
-	![EnableDevTunnel](./data/EnableDevTunnel.png) 
+	![EnableDevTunnel](./data/EnableDevTunnel.png)
 	- Create `Dev Tunnels`, for more details about [Dev Tunnels.](https://learn.microsoft.com/en-us/aspnet/core/test/dev-tunnels?view=aspnetcore-7.0)  
-	![ViewDevTunnels](./data/ViewDevTunnel.png) 
+	![ViewDevTunnels](./data/ViewDevTunnel.png)
 	- For accessing the Dev Tunnel public change the Access to Public.  
-	![CreateDevTunnels](./data/CreateDevTunnel.png) 
+	![CreateDevTunnels](./data/CreateDevTunnel.png)
 
 
 ## Clone the code local and update appsettings
@@ -45,14 +45,14 @@ A separate branch with end to end implementation is [available](https://github.c
 3. Run the application in debug mode, swagger url should open, if swagger not opened by itself add `/swagger/index.html` at the end.
 
 ## Create Webhook for Microsoft.Communication.RecordingFileStatus event
-Call Recording enables you to record multiple calling scenarios available in Azure Communication Services by providing you with a set of APIs to start, stop, pause and resume recording. To learn more about it, see [this guide](https://learn.microsoft.com/en-us/azure/communication-services/concepts/voice-video-calling/call-recording). 
+Call Recording enables you to record multiple calling scenarios available in Azure Communication Services by providing you with a set of APIs to start, stop, pause and resume recording. To learn more about it, see [this guide](https://learn.microsoft.com/en-us/azure/communication-services/concepts/voice-video-calling/call-recording).
 1. Navigate to your resource on Azure portal and select `Events` from the left side menu.
-2. Select `+ Event Subscription` to create a new subscription. 
-3. Filter for Recording File Status Updated(preview) event. 
+2. Select `+ Event Subscription` to create a new subscription.
+3. Filter for Recording File Status Updated(preview) event.
 4. Choose endpoint type as web hook and provide the public url generated for your application by Dev Tunnels. Make sure to provide the exact api route that you programmed to receive the event previously. In this case, it would be <dev_tunnel_url>/recordingFileStatus.  
 ![Event Grid Subscription for Call Recording](./data/WebHookSettings.png)  
 5. Select create to start the creation of subscription and validation of your endpoint as mentioned previously. The subscription is ready when the provisioning status is marked as succeeded.  
-**Note:** Application should be running to able to create the webhook successfully. 
+**Note:** Application should be running to able to create the webhook successfully.
 
 ## Step by step to test recordings API via swagger.
 
@@ -62,12 +62,15 @@ Once App is running local, you will see all list of exposed API on swagger.
 	- Execute, accept the call on Target PSTN Phone number, Keep call running.
 2. Step 2. Start Recording.
 	-	Get the serverCallId from log (command prompt should be running while you open the App in debug mode).
-	-	Try it out `POST recordings`, provide the serverCallId value.
+	-	Try it out `POST recordings`, provide the **serverCallId** value.
 	- 	Execute, recording would be started.
 3. Step 3. (Optional) Execute `POST recordings/{recordingId}:pause` and then `POST recordings/{recordingId}:resume`.
-4. Step 4. Execute `DELETE recordings/{recordingId}` for stop the recording.
-5. Step 5. Execute `GET download` for downloading the recording from server, only last recorded file will be downloaded.
-6. Step 6. Execute `DELETE delete` for delete the recording at server.
+4. Step 4. (Optional) `GET getRecordingState/{recordingId}` for getting the state od recording as *active* or *inactive*
+5. Step 5. Execute `DELETE recordings/{recordingId}` for stop the recording.
+6. Step 6. Execute `GET download` for downloading the recording from server, only last recorded file will be downloaded.
+	- Get the `Download Location` from log, and provide the same in **contentLocation** value.
+7. Step 7. Execute `DELETE delete` for delete the recording at server.
+	-  Get the `Delete Location` from log, and provide the same in **deleteLocation** value.
 
 ## Troubleshooting
 
@@ -80,4 +83,3 @@ Once App is running local, you will see all list of exposed API on swagger.
 
 - [Azure Communication Calling SDK](https://docs.microsoft.com/azure/communication-services/concepts/voice-video-calling/calling-sdk-features) - To learn more about the calling web SDK.
 - [ASP.NET Core](https://learn.microsoft.com/en-us/aspnet/core/introduction-to-aspnet-core?view=aspnetcore-7.0) - Framework for building web applications
-

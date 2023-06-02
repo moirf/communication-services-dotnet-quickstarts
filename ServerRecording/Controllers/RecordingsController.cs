@@ -22,10 +22,6 @@ namespace RecordingApi.Controllers
         private readonly CallAutomationClient _client;
         private readonly IConfiguration _configuration;
         
-        // for simplicity storing last locations
-        private string contentLocation;
-        private string deleteLocation;
-
         /// <summary>
         /// Initilize Recording
         /// </summary>
@@ -141,8 +137,8 @@ namespace RecordingApi.Controllers
         {
             var response = await _client.GetCallRecording().GetStateAsync(recordingId).ConfigureAwait(false);
             
-            _logger.LogInformation($"GetRecordingStateAsync response -- > {response}");
-            return Ok();
+            _logger.LogInformation($"GetRecordingStateAsync response -- > {response.GetRawResponse()}");
+            return Ok($"RecordingState : {response.Value.RecordingState}");
         }
 
         /// <summary>
@@ -150,7 +146,7 @@ namespace RecordingApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("download", Name = "Download_Recording")]
-        public IActionResult DownloadRecording()
+        public IActionResult DownloadRecording([FromQuery] string contentLocation)
         {
             var callRecording = _client.GetCallRecording();
             callRecording.DownloadTo(new Uri(contentLocation), "Recording_File.wav");
@@ -162,7 +158,7 @@ namespace RecordingApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpDelete("delete", Name = "Delete_Recording")]
-        public IActionResult DeleteRecording()
+        public IActionResult DeleteRecording([FromQuery] string deleteLocation)
         {
             _client.GetCallRecording().Delete(new Uri(deleteLocation));
             return Ok();
@@ -195,12 +191,14 @@ namespace RecordingApi.Controllers
 
                     if (eventData is Azure.Messaging.EventGrid.SystemEvents.AcsRecordingFileStatusUpdatedEventData statusUpdated)
                     {
-                        contentLocation = statusUpdated.RecordingStorageInfo.RecordingChunks[0].ContentLocation;
-                        deleteLocation = statusUpdated.RecordingStorageInfo.RecordingChunks[0].DeleteLocation;
+                       string  contentLocation = statusUpdated.RecordingStorageInfo.RecordingChunks[0].ContentLocation;
+                       string deleteLocation = statusUpdated.RecordingStorageInfo.RecordingChunks[0].DeleteLocation;
+                        _logger.LogInformation($"Recording Download Location : {contentLocation}, " +
+                            $"\nRecording Delete Location: {deleteLocation}");
                     }
                 }
             }
-            return Ok($"Recording Download Location : {contentLocation}, Recording Delete Location: {deleteLocation}");
+            return Ok();
         }
 
         /// <summary>
