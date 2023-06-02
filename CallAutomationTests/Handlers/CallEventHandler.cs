@@ -449,15 +449,24 @@ namespace CallAutomation.Scenarios.Handlers
                 var operationContext = playFailed.OperationContext;
                 _logger.LogCritical($"PlayFailed received for OperationContext: '{operationContext}', call ID was '{callId}'");
 
-                var callConnection = _callAutomationService.GetCallConnection(callConnectionId);
-                var callMedia = callConnection.GetCallMedia();
-                var ivrConfig = _callAutomationService.GetIvrConfig();
+                string eventName = Constants.TelemetryEvents.PlayAudioDurationMS;
+                MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(playFailed.ServerCallId);
 
-                await _callAutomationService.CancelAllMediaOperationsAsync(callMedia, callConnectionId, operationContext);
-
-                _logger.LogInformation($"PlayFailed routing call ID '{callId}' to all agents queue");
-
-                await _callAutomationService.PlayMenuChoiceAsync(DtmfTone.Zero, callMedia, ivrConfig["TextToSpeechLocale"]);
+                if (context != null)
+                {
+                    double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
+                    context.PlayAudioDurationMS = durationMS;
+                    _callContextService.SetMediaSignalingContext(playFailed.ServerCallId, context);
+                    MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                    {
+                        EventName = eventName,
+                        StartTime = DateTime.UtcNow,
+                        DurationMS = durationMS
+                    };
+                    _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
+                        mediaSignalingTelemetryDimensions.GetDimensionsProperties());
+                    _telemetryService.TrackMetric(eventName, durationMS);
+                }
             }
         }
 
@@ -466,6 +475,25 @@ namespace CallAutomation.Scenarios.Handlers
             using (_logger.BeginScope(GetLogContext(playCanceled.CorrelationId, playCanceled.CallConnectionId, playCanceled.OperationContext)))
             {
                 _logger.LogInformation($"PlayCanceled received for OperationContext: '{playCanceled.OperationContext}'");
+
+                string eventName = Constants.TelemetryEvents.PlayCancelDurationMS;
+                MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(playCanceled.ServerCallId);
+
+                if (context != null)
+                {
+                    double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
+                    context.PlayAudioDurationMS = durationMS;
+                    _callContextService.SetMediaSignalingContext(playCanceled.ServerCallId, context);
+                    MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                    {
+                        EventName = eventName,
+                        StartTime = DateTime.UtcNow,
+                        DurationMS = durationMS
+                    };
+                    _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
+                        mediaSignalingTelemetryDimensions.GetDimensionsProperties());
+                    _telemetryService.TrackMetric(eventName, durationMS);
+                }
 
                 return Task.CompletedTask;
             }

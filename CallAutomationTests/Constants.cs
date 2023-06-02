@@ -74,6 +74,7 @@
             public const string AddParticipantDurationMS = "AddParticipantDurationMS";
             public const string RemoveParticipantDurationMS = "RemoveParticipantDurationMS";
             public const string PlayAudioDurationMS = "PlayAudioDurationMS";
+            public const string PlayCancelDurationMS = "PlayCancelDurationMS";
         }
     }
     public static class QueueConstants
