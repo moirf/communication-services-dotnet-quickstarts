@@ -17,6 +17,7 @@ namespace CallAutomation.Scenarios.Handlers
         IEventGridEventHandler<AcsRecordingFileStatusUpdatedEventData>,
         IEventCloudEventHandler<AddParticipantFailed>,
         IEventCloudEventHandler<AddParticipantSucceeded>,
+        IEventCloudEventHandler<RemoveParticipantSucceeded>,
         IEventCloudEventHandler<CallConnected>,
         IEventCloudEventHandler<CallDisconnected>,
         IEventCloudEventHandler<ParticipantsUpdated>,
@@ -135,6 +136,37 @@ namespace CallAutomation.Scenarios.Handlers
 
                         _callContextService.AddAgentAcsId(callConnectionId, addParticipantSucceeded.Participant.RawId);
                     }
+                    else if (operationContext == Constants.OperationContext.LoadTestOperation)
+                    {
+                        string eventName = Constants.TelemetryEvents.AddParticipantDurationMS;
+                        MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(addParticipantSucceeded.ServerCallId);
+
+                        if (context == null)
+                        {
+                            context = new MediaSignalingContext()
+                            {
+                                ServerCallId = addParticipantSucceeded.ServerCallId,
+                            };
+                        }
+
+                        if (context != null)
+                        {
+                            double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
+                            context.AddParticipantDurationMS = durationMS;
+
+                            _callContextService.SetMediaSignalingContext(addParticipantSucceeded.ServerCallId, context);
+
+                            MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                            {
+                                EventName = eventName,
+                                StartTime = DateTime.UtcNow,
+                                DurationMS = durationMS
+                            };
+                            _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
+                                mediaSignalingTelemetryDimensions.GetDimensionsProperties());
+                            _telemetryService.TrackMetric(eventName, durationMS);
+                        }
+                    }
                     else
                     {
                         _logger.LogWarning($"AddParticipantSucceeded for a non-agent. Call ID was '{addParticipantSucceeded.CorrelationId}'");
@@ -146,6 +178,53 @@ namespace CallAutomation.Scenarios.Handlers
                 {
                     // couldn't stop hold music!?
                     _logger.LogCritical($"AddParticipantSucceeded unexpectedly failed: {ex}");
+                    throw;
+                }
+            }
+        }
+
+        public Task Handle(RemoveParticipantSucceeded removeParticipantSucceeded, string callerId)
+        {
+            using (_logger.BeginScope(GetLogContext(removeParticipantSucceeded.CorrelationId, removeParticipantSucceeded.CallConnectionId, removeParticipantSucceeded.OperationContext)))
+            {
+                try
+                {
+                    var operationContext = removeParticipantSucceeded.OperationContext;
+                    _logger.LogInformation($"RemoveParticipantSucceeded received for OperationContext '{operationContext}'");
+
+                    if (operationContext == Constants.OperationContext.LoadTestOperation)
+                    {
+                        string eventName = Constants.TelemetryEvents.RemoveParticipantDurationMS;
+                        MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(removeParticipantSucceeded.ServerCallId);
+
+                        if (context != null)
+                        {
+                            double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
+                            context.RemoveParticipantDurationMS = durationMS;
+
+                            _callContextService.SetMediaSignalingContext(removeParticipantSucceeded.ServerCallId, context);
+
+                            MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                            {
+                                EventName = eventName,
+                                StartTime = DateTime.UtcNow,
+                                DurationMS = durationMS
+                            };
+                            _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
+                                mediaSignalingTelemetryDimensions.GetDimensionsProperties());
+                            _telemetryService.TrackMetric(eventName, durationMS);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning($"RemoveParticipantSucceeded for a non-agent. Call ID was '{removeParticipantSucceeded.CorrelationId}'");
+                    }
+
+                    return Task.CompletedTask;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogCritical($"RemoveParticipantSucceeded unexpectedly failed: {ex}");
                     throw;
                 }
             }
@@ -330,6 +409,26 @@ namespace CallAutomation.Scenarios.Handlers
                         case Constants.OperationContext.ScheduledCallbackDialoutRejected:
                             _logger.LogInformation("Customer rejected the callback, hanging up");
                             await _callAutomationService.EndCallAsync(callConnectionId, operationContext);
+                            break;
+                        case Constants.OperationContext.LoadTestOperation:
+                            string eventName = Constants.TelemetryEvents.PlayAudioDurationMS;
+                            MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(playCompleted.ServerCallId);
+
+                            if (context != null)
+                            {
+                                double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
+                                context.PlayAudioDurationMS = durationMS;
+                                _callContextService.SetMediaSignalingContext(playCompleted.ServerCallId, context);
+                                MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                                {
+                                    EventName = eventName,
+                                    StartTime = DateTime.UtcNow,
+                                    DurationMS = durationMS
+                                };
+                                _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
+                                    mediaSignalingTelemetryDimensions.GetDimensionsProperties());
+                                _telemetryService.TrackMetric(eventName, durationMS);
+                            }
                             break;
                     }
                 }
@@ -660,8 +759,8 @@ namespace CallAutomation.Scenarios.Handlers
             {
                 string eventName = Constants.TelemetryEvents.RecordingStateChangedEvent;
 
-                _logger.LogInformation($"RecordingStateChanged received : State = '{recordingStateChanged.State}', " +
-                    $"StartDateTime = '{recordingStateChanged.StartDateTime}'");
+                _logger.LogInformation($"RecordingStateChanged received : State = {recordingStateChanged.State}, " +
+                    $"StartDateTime = {recordingStateChanged.StartDateTime}");
 
                 RecordingContext? context = _callContextService.GetRecordingContext(recordingStateChanged.ServerCallId);
 
@@ -944,7 +1043,7 @@ namespace CallAutomation.Scenarios.Handlers
             try
             {
                 _logger.LogInformation($"RecordingStateChanged received : State = STOP " +
-                    $"StartDateTime = '{recordingFileStatusUpdatedEvent.RecordingStartTime}'");
+                    $"StartDateTime = {recordingFileStatusUpdatedEvent.RecordingStartTime}");
 
                 RecordingContext context = _callContextService.GetRecordingContext(serverCallId);
 

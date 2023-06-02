@@ -16,6 +16,7 @@ namespace CallAutomation.Scenarios
             services.AddSingleton<IEventGridEventHandler<AcsRecordingFileStatusUpdatedEventData>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<AddParticipantFailed>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<AddParticipantSucceeded>, CallEventHandler>();
+            services.AddSingleton<IEventCloudEventHandler<RemoveParticipantSucceeded>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<CallConnected>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<CallDisconnected>, CallEventHandler>();
             services.AddSingleton<IEventCloudEventHandler<ParticipantsUpdated>, CallEventHandler>();

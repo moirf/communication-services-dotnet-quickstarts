@@ -18,6 +18,7 @@ namespace CallAutomation.Scenarios.Services
         private ConcurrentDictionary<string, string> _callConnectionIdToMediaSubscriptionId;
         private ConcurrentDictionary<string, string> _callConnectionIdToCallSummary;
         private ConcurrentDictionary<string, RecordingContext> _serverCallIdToRecordingContext;
+        private ConcurrentDictionary<string, MediaSignalingContext> _serverCallIdToMediaSignalingContext;
 
         public CallContextService()
         {
@@ -34,6 +35,7 @@ namespace CallAutomation.Scenarios.Services
             _callConnectionIdToCallSummary = new ConcurrentDictionary<string, string>();
             _callConnectionIdToMainMenuSpeechRecognizerCancellationTokenSource = new ConcurrentDictionary<string, CancellationTokenSource>();
             _serverCallIdToRecordingContext = new ConcurrentDictionary<string, RecordingContext>();
+            _serverCallIdToMediaSignalingContext = new ConcurrentDictionary<string, MediaSignalingContext>();
         }
 
         public RecordingContext? GetRecordingContext(string serverCallId)
@@ -85,6 +87,47 @@ namespace CallAutomation.Scenarios.Services
         public void DeleteRecordingContext(string serverCallId)
         {
             _serverCallIdToRecordingContext.TryRemove(serverCallId, out _);
+        }
+
+        public MediaSignalingContext? GetMediaSignalingContext(string serverCallId)
+        {
+            if (_serverCallIdToMediaSignalingContext.TryGetValue(serverCallId, out var mediaSignalingContext))
+            {
+                return mediaSignalingContext;
+            }
+
+            return null;
+        }
+        public void SetMediaSignalingContext(string serverCallId, MediaSignalingContext mediaSignalingContext)
+        {
+            MediaSignalingContext updatedMediaSignalingContext = GetMediaSignalingContext(serverCallId);
+
+            if (updatedMediaSignalingContext != null)
+            {
+                if (mediaSignalingContext.AddParticipantDurationMS != null)
+                {
+                    updatedMediaSignalingContext.AddParticipantDurationMS = mediaSignalingContext.AddParticipantDurationMS;
+                }
+                if (mediaSignalingContext.RemoveParticipantDurationMS != null)
+                {
+                    updatedMediaSignalingContext.RemoveParticipantDurationMS = mediaSignalingContext.RemoveParticipantDurationMS;
+                }
+                if (mediaSignalingContext.PlayAudioDurationMS != null)
+                {
+                    updatedMediaSignalingContext.PlayAudioDurationMS = mediaSignalingContext.PlayAudioDurationMS;
+                }
+            }
+            else
+            {
+                updatedMediaSignalingContext = mediaSignalingContext;
+            }
+
+            updatedMediaSignalingContext.ActionStartTime = DateTime.UtcNow;
+            _serverCallIdToMediaSignalingContext.AddOrUpdate(serverCallId, mediaSignalingContext, (_, _) => updatedMediaSignalingContext);
+        }
+        public void DeleteMediaSignalingContext(string serverCallId)
+        {
+            _serverCallIdToMediaSignalingContext.TryRemove(serverCallId, out _);
         }
 
         public string? GetCustomerId(string callConnectionId)

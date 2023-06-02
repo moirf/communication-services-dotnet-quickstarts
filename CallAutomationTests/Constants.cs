@@ -26,6 +26,7 @@
             public const string ScheduledCallbackDialoutRejected = "ScheduledCallbackDialoutRejected";
             public const string HoldCall = "HoldCall";
             public const string ResumeCall = "ResumeCall";
+            public const string LoadTestOperation = "LoadTestOperation";
         }
 
         public static class IvrTextKeys
@@ -68,6 +69,11 @@
             public const string ResumeRecordingDurationMS = "ResumeRecordingDurationMS";
             public const string PauseRecordingDurationMS = "PauseRecordingDurationMS";
             public const string RecordingStateChangedEvent = "RecordingStateChangedEvent";
+
+            //Media and Signaling events
+            public const string AddParticipantDurationMS = "AddParticipantDurationMS";
+            public const string RemoveParticipantDurationMS = "RemoveParticipantDurationMS";
+            public const string PlayAudioDurationMS = "PlayAudioDurationMS";
         }
     }
     public static class QueueConstants
