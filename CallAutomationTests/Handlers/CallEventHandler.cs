@@ -416,7 +416,7 @@ namespace CallAutomation.Scenarios.Handlers
 
                             if (context != null)
                             {
-                                double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
+                                double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds - 8000; //decrease the audio time of  8ms
                                 context.PlayAudioDurationMS = durationMS;
                                 _callContextService.SetMediaSignalingContext(playCompleted.ServerCallId, context);
                                 MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
@@ -449,23 +449,26 @@ namespace CallAutomation.Scenarios.Handlers
                 var operationContext = playFailed.OperationContext;
                 _logger.LogCritical($"PlayFailed received for OperationContext: '{operationContext}', call ID was '{callId}'");
 
-                string eventName = Constants.TelemetryEvents.PlayAudioDurationMS;
-                MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(playFailed.ServerCallId);
-
-                if (context != null)
+                if(operationContext == Constants.OperationContext.LoadTestOperation)
                 {
-                    double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
-                    context.PlayAudioDurationMS = durationMS;
-                    _callContextService.SetMediaSignalingContext(playFailed.ServerCallId, context);
-                    MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                    string eventName = Constants.TelemetryEvents.PlayAudioDurationMS;
+                    MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(playFailed.ServerCallId);
+
+                    if (context != null)
                     {
-                        EventName = eventName,
-                        StartTime = DateTime.UtcNow,
-                        DurationMS = durationMS
-                    };
-                    _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
-                        mediaSignalingTelemetryDimensions.GetDimensionsProperties());
-                    _telemetryService.TrackMetric(eventName, durationMS);
+                        double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
+                        context.PlayAudioDurationMS = durationMS;
+                        _callContextService.SetMediaSignalingContext(playFailed.ServerCallId, context);
+                        MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                        {
+                            EventName = eventName,
+                            StartTime = DateTime.UtcNow,
+                            DurationMS = durationMS
+                        };
+                        _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
+                            mediaSignalingTelemetryDimensions.GetDimensionsProperties());
+                        _telemetryService.TrackMetric(eventName, durationMS);
+                    }
                 }
             }
         }
@@ -476,23 +479,26 @@ namespace CallAutomation.Scenarios.Handlers
             {
                 _logger.LogInformation($"PlayCanceled received for OperationContext: '{playCanceled.OperationContext}'");
 
-                string eventName = Constants.TelemetryEvents.PlayCancelDurationMS;
-                MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(playCanceled.ServerCallId);
-
-                if (context != null)
+                if(playCanceled.OperationContext == Constants.OperationContext.LoadTestOperation)
                 {
-                    double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds;
-                    context.PlayAudioDurationMS = durationMS;
-                    _callContextService.SetMediaSignalingContext(playCanceled.ServerCallId, context);
-                    MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                    string eventName = Constants.TelemetryEvents.PlayCancelDurationMS;
+                    MediaSignalingContext? context = _callContextService.GetMediaSignalingContext(playCanceled.ServerCallId);
+
+                    if (context != null)
                     {
-                        EventName = eventName,
-                        StartTime = DateTime.UtcNow,
-                        DurationMS = durationMS
-                    };
-                    _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
-                        mediaSignalingTelemetryDimensions.GetDimensionsProperties());
-                    _telemetryService.TrackMetric(eventName, durationMS);
+                        double durationMS = (DateTime.UtcNow - context.ActionStartTime).Value.TotalMilliseconds - 2000;
+                        context.PlayAudioDurationMS = durationMS;
+                        _callContextService.SetMediaSignalingContext(playCanceled.ServerCallId, context);
+                        MediaSignalingTelemetryDimensions mediaSignalingTelemetryDimensions = new MediaSignalingTelemetryDimensions()
+                        {
+                            EventName = eventName,
+                            StartTime = DateTime.UtcNow,
+                            DurationMS = durationMS
+                        };
+                        _telemetryService.TrackEvent(eventName: mediaSignalingTelemetryDimensions.EventName,
+                            mediaSignalingTelemetryDimensions.GetDimensionsProperties());
+                        _telemetryService.TrackMetric(eventName, durationMS);
+                    }
                 }
 
                 return Task.CompletedTask;
