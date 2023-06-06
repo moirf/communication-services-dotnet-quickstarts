@@ -59,7 +59,10 @@ app.MapPost("/api/incomingCall", async (
         }
         var jsonObject = JsonNode.Parse(eventGridEvent.Data).AsObject();
         var targetId = (string)(jsonObject["to"]["rawId"]); 
+        if(caSourceId == null)
+        {
         caSourceId = builder.Configuration["TargetId"];
+        }
         var rejectcall = Convert.ToBoolean(builder.Configuration["declinecall"]);
 
         if (caSourceId.Contains(targetId) )
@@ -302,6 +305,17 @@ app.MapPost("/api/calls/{contextId}", async (
         {
             logger.LogInformation($"Participant Updated Event Recieved");
             logger.LogInformation("-------Updated Participant List----- ");
+            if(updatedParticipantEvent.Participants.Count == 2)
+            {
+                if (updatedParticipantEvent.Participants[0].Identifier.RawId == sourceCallerID)
+                {
+                    caSourceId = updatedParticipantEvent.Participants[1].Identifier.RawId.Trim();
+                }
+                else if (updatedParticipantEvent.Participants[1].Identifier.RawId == sourceCallerID)
+                {
+                    caSourceId = updatedParticipantEvent.Participants[0].Identifier.RawId.Trim();
+                }
+            }
             foreach (var participant in updatedParticipantEvent.Participants)
             {
                 logger.LogInformation($"Participant Raw ID : {participant.Identifier.RawId},  IsMuted : {participant.IsMuted}");
