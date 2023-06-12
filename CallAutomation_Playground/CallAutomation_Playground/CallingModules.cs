@@ -151,7 +151,7 @@ namespace CallAutomation_Playground
         {
             // Play Hold Music in Loop, until cancelled with CancelAllMediaOperation
             FileSource fileSource = new FileSource(musicPrompt);
-            PlayToAllOptions playOptions = new PlayToAllOptions(new List<PlaySource> { fileSource });
+            PlayToAllOptions playOptions = new PlayToAllOptions(fileSource);
             playOptions.Loop = true;
             await _callConnection.GetCallMedia().PlayToAllAsync(playOptions);
         }
