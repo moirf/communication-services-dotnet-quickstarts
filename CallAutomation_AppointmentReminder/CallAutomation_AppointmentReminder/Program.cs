@@ -64,7 +64,7 @@ app.MapPost("/api/call", async ([Required] string targetNo, CallAutomationClient
                 var response = await callAutomationClient.CreateCallAsync(createCallOption).ConfigureAwait(false);
                 logger.LogInformation($"Reponse from create call: {response.GetRawResponse()}" +
                     $"CallConnection Id : {response.Value.CallConnection.CallConnectionId}");
-                SourceId = response.Value.CallConnectionProperties.Source.RawId;
+                SourceId = response.Value.CallConnectionProperties.SourceIdentity.RawId;
             }
         }
     }
@@ -110,7 +110,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
 
             var properties = callConnection.GetCallConnectionProperties();
-            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.Source.RawId}," +
+            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceIdentity.RawId}," +
                 $"CallConnection State : {properties.Value.CallConnectionState}");
             logger.LogInformation($"targets ------->");
             foreach (var target in properties.Value.Targets)
@@ -139,14 +139,14 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             DtmfTone toneDetected = ((DtmfResult)recognizeCompletedEvent.RecognizeResult).Tones[0];
             if (toneDetected == DtmfTone.Three)
             {
-                var playSource = new List<PlaySource> { Utils.GetAudioForTone(toneDetected, callConfiguration) };
+                var playSource =  Utils.GetAudioForTone(toneDetected, callConfiguration) ;
                 // Play audio for dtmf response
                 await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "AgentConnect", Loop = false });
 
             }
             else
             {
-                var playSource = new List<PlaySource> { Utils.GetAudioForTone(toneDetected, callConfiguration) };
+                var playSource = Utils.GetAudioForTone(toneDetected, callConfiguration) ;
                 // Play audio for dtmf response
                 await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
             }
@@ -170,7 +170,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
                     }
                     var addParticipantOptions = new AddParticipantOptions(callInvite);
                     var response = await callConnection.AddParticipantAsync(addParticipantOptions);
-                    var playSource = new PlaySource[] { new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant)) };
+                    var playSource = new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.AddParticipant));
                     await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "addParticipant", Loop = false });
                     await Task.Delay(TimeSpan.FromSeconds(10));
 
@@ -189,7 +189,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             if (recognizeFailedEvent.ReasonCode.Equals(MediaEventReasonCode.RecognizeInitialSilenceTimedOut))
             {
                 logger.LogInformation($"Recognition timed out for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
-                var playSource = new List<PlaySource> { new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.TimedoutAudio)) };
+                var playSource =  new FileSource(new Uri(callConfiguration.Value.AppBaseUri + callConfiguration.Value.TimedoutAudio)) ;
 
                 //Play audio for time out
                 await callConnectionMedia.PlayToAllAsync(new PlayToAllOptions(playSource) { OperationContext = "ResponseToDtmf", Loop = false });
