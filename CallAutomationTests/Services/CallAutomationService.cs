@@ -627,13 +627,13 @@ namespace CallAutomation.Scenarios.Services
 
         private static async Task PlayAudioToAllAsync(CallMedia callMedia, PlaySource playSource, string operationContext, bool loop)
         {
-            var playOptions = new PlayOptions
+            var playOptions = new PlayToAllOptions(playSource)
             {
                 OperationContext = operationContext,
                 Loop = loop
             };
 
-            await callMedia.PlayToAllAsync(playSource, playOptions);
+            await callMedia.PlayToAllAsync(playOptions);
         }
 
         public void ProcessEvents(CloudEvent[] cloudEvents)
@@ -649,9 +649,9 @@ namespace CallAutomation.Scenarios.Services
             {
                 var recordingOptions = new StartRecordingOptions(new ServerCallLocator(serverCallId));
                 var recordingStateCallbackEndpoint = new Uri($"{_configuration["BaseUri"]}/callbacks/{Guid.NewGuid()}?CallerId=null");
-                recordingOptions.RecordingStateCallbackEndpoint = recordingStateCallbackEndpoint;
+                recordingOptions.RecordingStateCallbackUri = recordingStateCallbackEndpoint;
 
-                return await _client.GetCallRecording().StartRecordingAsync(recordingOptions).ConfigureAwait(false);
+                return await _client.GetCallRecording().StartAsync(recordingOptions).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -667,7 +667,7 @@ namespace CallAutomation.Scenarios.Services
 
             try
             {
-                return await _client.GetCallRecording().StopRecordingAsync(recordingId).ConfigureAwait(false);
+                return await _client.GetCallRecording().StopAsync(recordingId).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -683,7 +683,7 @@ namespace CallAutomation.Scenarios.Services
 
             try
             {
-                return await _client.GetCallRecording().PauseRecordingAsync(recordingId).ConfigureAwait(false);
+                return await _client.GetCallRecording().PauseAsync(recordingId).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -698,7 +698,7 @@ namespace CallAutomation.Scenarios.Services
 
             try
             {
-                return await _client.GetCallRecording().ResumeRecordingAsync(recordingId).ConfigureAwait(false);
+                return await _client.GetCallRecording().ResumeAsync(recordingId).ConfigureAwait(false);
             }
             catch (Exception e)
             {
@@ -713,7 +713,7 @@ namespace CallAutomation.Scenarios.Services
 
             try
             {
-                return await _client.GetCallRecording().GetRecordingStateAsync(recordingId).ConfigureAwait(false);
+                return await _client.GetCallRecording().GetStateAsync(recordingId).ConfigureAwait(false);
             }
             catch (Exception e)
             {

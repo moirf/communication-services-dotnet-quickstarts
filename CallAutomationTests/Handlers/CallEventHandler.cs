@@ -56,19 +56,11 @@ namespace CallAutomation.Scenarios.Handlers
                 _logger.LogInformation("IncomingCallEvent received");
 
                 var to = incomingCallEvent?.To?.RawId;
-                var allowList = _callAutomationService.GetAllowedIncomingIdentitiesList();
-
-                if (allowList == null || allowList.Any(x => to.EndsWith(x, StringComparison.OrdinalIgnoreCase)))
-                {
-                    _logger.LogInformation($"Accepting call for {to}");
-
-                    var answerCallResult = await _callAutomationService.AnswerCallAsync(incomingCallEvent);
-                    var callConnectionId = answerCallResult.CallConnectionProperties.CallConnectionId;
-
-                    // store the customer's MRI
-                    var callerAcsId = incomingCallEvent?.From?.RawId;
-                    _callContextService.SetCustomerAcsId(callConnectionId, callerAcsId);
-                }
+                _logger.LogInformation($"Accepting call for {to}");
+                var answerCallResult = await _callAutomationService.AnswerCallAsync(incomingCallEvent);
+                var callConnectionId = answerCallResult.CallConnectionProperties.CallConnectionId;
+                var callerAcsId = incomingCallEvent?.From?.RawId;
+                _callContextService.SetCustomerAcsId(callConnectionId, callerAcsId);
             }
             catch (Exception ex)
             {
@@ -711,45 +703,45 @@ namespace CallAutomation.Scenarios.Handlers
                 switch (operationContext)
                 {
                     // customer made no input
-                    case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == ReasonCode.RecognizeSpeechOptionNotMatched):
+                    case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
                         if (!useCustomPhraseRecognition)
                         {
                             await PlayMainMenu(callConnection, textToSpeechLocale, callerId);
                         }
                         break;
-                    case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == ReasonCode.RecognizeInitialSilenceTimedOut):
+                    case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
                         if (useCustomPhraseRecognition)
                         {
                             CancelMainMenuSpeechRecognizer(callConnectionId, operationContext);
                         }
                         await PlayMainMenu(callConnection, textToSpeechLocale, callerId);
                         break;
-                    case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == ReasonCode.RecognizeIncorrectToneDetected):
+                    case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeIncorrectToneDetected):
                         if (useCustomPhraseRecognition)
                         {
                             CancelMainMenuSpeechRecognizer(callConnectionId, operationContext);
                         }
                         await PlayMainMenu(callConnection, textToSpeechLocale, callerId, prerollText: ivrText[Constants.IvrTextKeys.InvalidOption]);
                         break;
-                    case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == ReasonCode.RecognizeInitialSilenceTimedOut):
-                    case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == ReasonCode.RecognizeSpeechOptionNotMatched):
-                    case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == ReasonCode.RecognizeInitialSilenceTimedOut):
-                    case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == ReasonCode.RecognizeSpeechOptionNotMatched):
+                    case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
+                    case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
+                    case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
+                    case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
                         await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia, ivrText[Constants.IvrTextKeys.ScheduledCallbackRejected],
                             Constants.OperationContext.ScheduledCallbackRejected, textToSpeechLocale);
                         break;
-                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == ReasonCode.RecognizeInitialSilenceTimedOut):
-                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == ReasonCode.RecognizeSpeechOptionNotMatched):
+                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
+                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
                         await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia, ivrText[Constants.IvrTextKeys.NoResponse],
                             Constants.OperationContext.ScheduledCallbackDialoutRejected, textToSpeechLocale);
                         break;
                     // couldn't recognize menu choice
-                    case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == ReasonCode.RecognizeIncorrectToneDetected):
-                    case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == ReasonCode.RecognizeIncorrectToneDetected):
+                    case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeIncorrectToneDetected):
+                    case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeIncorrectToneDetected):
                         await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia, $"{ivrText[Constants.IvrTextKeys.InvalidOption]} {ivrText[Constants.IvrTextKeys.ScheduledCallbackRejected]}",
                             Constants.OperationContext.ScheduledCallbackRejected, textToSpeechLocale);
                         break;
-                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == ReasonCode.RecognizeIncorrectToneDetected):
+                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeIncorrectToneDetected):
                         await _callAutomationService.PlayCallbackDialoutOptionsAsync(callerId, callMedia, textToSpeechLocale, ivrText[Constants.IvrTextKeys.InvalidOption]);
                         break;
                     // route caller to all agents queue
@@ -760,13 +752,13 @@ namespace CallAutomation.Scenarios.Handlers
                             CancelAccountIdSpeechRecognizer(callConnectionId, operationContext);
                         }
 
-                        var failedPrerollText = recognizeFailed.ReasonCode == ReasonCode.RecognizeInitialSilenceTimedOut
+                        var failedPrerollText = recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut
                             ? ivrText["CustomerQueryTimeout"]
                             : ivrText["AccountIdValidationFailed"];
 
                         await _callAutomationService.PlayMenuChoiceAsync(DtmfTone.Zero, callMedia, textToSpeechLocale, prerollText: failedPrerollText);
                         break;
-                    case Constants.OperationContext.AiPairing when (recognizeFailed.ReasonCode == ReasonCode.RecognizeInitialSilenceTimedOut):
+                    case Constants.OperationContext.AiPairing when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
                         _logger.LogInformation($"AiPairing timed out during DTMF detection and customer said nothing");
                         CancelAiPairingSpeechRecognizer(callConnectionId, operationContext);
 
