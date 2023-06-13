@@ -12,6 +12,7 @@ namespace CallAutomation_Playground
         private readonly ILogger<TopLevelMenuService> _logger;
         private readonly CallAutomationClient _callAutomation;
         private readonly PlaygroundConfigs _playgroundConfig;
+        CommunicationIdentifier formattedTargetIdentifier;
 
         public TopLevelMenuService(
             ILogger<TopLevelMenuService> logger,
@@ -55,17 +56,27 @@ namespace CallAutomation_Playground
                             string phoneNumberToCall = await callingModule.RecognizeTonesAsync(
                                 originalTarget,
                                 10,
-                                12,
+                                60,
                                 _playgroundConfig.AllPrompts.CollectPhoneNumber,
                                 _playgroundConfig.AllPrompts.Retry);
+                            var targetId = Tools.FormatPhoneNumbers(phoneNumberToCall);
+                            var identifierKind = Tools.GetIdentifierKind(targetId);
 
-                            string formattedPhoneNumber = Tools.FormatPhoneNumbers(phoneNumberToCall);
-                            PhoneNumberIdentifier phoneIdentifierToAdd = new PhoneNumberIdentifier(formattedPhoneNumber);
-                            _logger.LogInformation($"Phonenumber to Call[{formattedPhoneNumber}]");
+                            if (identifierKind == Tools.CommunicationIdentifierKind.PhoneIdentity)
+                            {
+                                PhoneNumberIdentifier pstntarget = new PhoneNumberIdentifier(targetId);
+                                formattedTargetIdentifier = pstntarget;
+                            }
+                            else if (identifierKind == Tools.CommunicationIdentifierKind.UserIdentity)
+                            {
+                                CommunicationUserIdentifier communicationIdentifier = new CommunicationUserIdentifier(phoneNumberToCall);
+                                formattedTargetIdentifier = communicationIdentifier;
+                            }
+                            _logger.LogInformation($"TargetIdentifier to Call[{formattedTargetIdentifier}]");
 
                             // then add the phone number
                             await callingModule.AddParticipantAsync(
-                                phoneIdentifierToAdd,
+                                formattedTargetIdentifier,
                                 _playgroundConfig.AllPrompts.AddParticipantSuccess,
                                 _playgroundConfig.AllPrompts.AddParticipantFailure,
                                 _playgroundConfig.AllPrompts.Music);
@@ -85,7 +96,7 @@ namespace CallAutomation_Playground
                             string phoneNumberToTransfer = await callingModule.RecognizeTonesAsync(
                                 originalTarget,
                                 10,
-                                12,
+                                60,
                                 _playgroundConfig.AllPrompts.CollectPhoneNumber,
                                 _playgroundConfig.AllPrompts.Retry);
 

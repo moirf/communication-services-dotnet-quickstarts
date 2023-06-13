@@ -5,7 +5,8 @@ using CallAutomation_Playground;
 using CallAutomation_Playground.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 // CallAutomation client: Add with given Azure Communication Service's connection string
 CallAutomationClient callAutomationClient = new CallAutomationClient(ReadingConfigs(builder, "COMMUNICATION_CONNECTION_STRING"));
 builder.Services.AddSingleton(callAutomationClient);

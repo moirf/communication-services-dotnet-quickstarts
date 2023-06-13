@@ -11,6 +11,7 @@ namespace CallAutomation_Playground
     {
         private readonly CallConnection _callConnection;
         private readonly PlaygroundConfigs _playgroundConfig;
+        CallInvite callInvite;
 
         public CallingModules(
             CallConnection callConnection,
@@ -69,14 +70,24 @@ namespace CallAutomation_Playground
         }
 
         public async Task AddParticipantAsync(
-            PhoneNumberIdentifier targetToAdd,
+            CommunicationIdentifier targetToAdd,
             Uri successPrompt,
             Uri failurePrompt,
             Uri musicPrompt)
         {
             // Send add participant request
+
+
             PhoneNumberIdentifier source = new PhoneNumberIdentifier(_playgroundConfig.DirectOfferedPhonenumber);
-            CallInvite callInvite = new CallInvite(targetToAdd, source);
+
+            if (targetToAdd.GetType() == typeof(PhoneNumberIdentifier))
+            {
+                callInvite = new CallInvite((PhoneNumberIdentifier)targetToAdd, source);
+            }
+            else if (targetToAdd.GetType() == typeof(CommunicationUserIdentifier))
+            {
+                callInvite = new CallInvite((CommunicationUserIdentifier)targetToAdd);
+            }
             AddParticipantResult addParticipantResult = await _callConnection.AddParticipantAsync(callInvite);
 
             // Play hold music while the participant is joining

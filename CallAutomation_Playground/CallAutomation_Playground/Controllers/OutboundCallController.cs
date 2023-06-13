@@ -18,6 +18,7 @@ namespace CallAutomation_Playground.Controllers
         private readonly PlaygroundConfigs _playgroundConfig;
         private readonly ITopLevelMenuService _topLevelMenuService;
         private readonly IOngoingEventHandler _ongoingEventHandler;
+        CommunicationIdentifier _target;
 
         public OutboundCallController(
             ILogger<OutboundCallController> logger,
@@ -34,44 +35,59 @@ namespace CallAutomation_Playground.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCall([FromQuery] string pstnTarget)
+        public async Task<IActionResult> CreateCall([FromQuery] string target)
         {
             string callConnectionId = string.Empty;
+            PhoneNumberIdentifier caller = new PhoneNumberIdentifier(_playgroundConfig.DirectOfferedPhonenumber);
             try
             {
-                // prepare the target and caller in CallInvite
-                PhoneNumberIdentifier target = new PhoneNumberIdentifier(Tools.FormatPhoneNumbers(pstnTarget));
-                PhoneNumberIdentifier caller = new PhoneNumberIdentifier(_playgroundConfig.DirectOfferedPhonenumber);
-                CallInvite callInvite = new CallInvite(target, caller);
-
-                _logger.LogInformation($"Calling[{target.PhoneNumber}] from DirectOfferNumber[{_playgroundConfig.DirectOfferedPhonenumber}]");
-
-                // create an outbound call to target using caller number
-                CreateCallResult createCallResult = await _callAutomationClient.CreateCallAsync(callInvite, _playgroundConfig.CallbackUri);
-                callConnectionId = createCallResult.CallConnectionProperties.CallConnectionId;
-
-                _ = Task.Run(async () =>
+                if (!string.IsNullOrEmpty(target))
                 {
-                    // attaching ongoing event handler for specific events
-                    // This is useful for handling unexpected events could happen anytime (such as participants leaves the call and cal is disconnected)
-                    _ongoingEventHandler.AttachCountParticipantsInTheCall(callConnectionId);
-                    _ongoingEventHandler.AttachDisconnectedWrapup(callConnectionId);
+                    CallInvite? callInvite = null;
+                    var identifierKind = Tools.GetIdentifierKind(target);
 
-                    // Waiting for event related to createCallResult, which is CallConnected
-                    // Wait for 40 seconds before throwing timeout error.
-                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(40));
-                    CreateCallEventResult eventResult = await createCallResult.WaitForEventProcessorAsync(tokenSource.Token);
-
-                    if (eventResult.IsSuccess)
+                    if (identifierKind == Tools.CommunicationIdentifierKind.PhoneIdentity)
                     {
-                        // call connected returned! Call is now established.
-                        // invoke top level menu now the call is connected;
-                        await _topLevelMenuService.InvokeTopLevelMenu(
-                            target, 
-                            createCallResult.CallConnection,
-                            eventResult.SuccessResult.ServerCallId);
+                        PhoneNumberIdentifier pstntarget = new PhoneNumberIdentifier(Tools.FormatPhoneNumbers(target));
+                        callInvite = new CallInvite(pstntarget, caller);
+                        _target = pstntarget;
                     }
-                });
+                    else if (identifierKind == Tools.CommunicationIdentifierKind.UserIdentity)
+                    {
+                        CommunicationUserIdentifier communicationIdentifier = new CommunicationUserIdentifier(target);
+                        callInvite = new CallInvite(communicationIdentifier);
+                        _target = communicationIdentifier;
+                    }
+                    _logger.LogInformation($"Calling[{_target}] from DirectOfferNumber[{_playgroundConfig.DirectOfferedPhonenumber}]");
+
+
+                    // create an outbound call to target using caller number
+                    CreateCallResult createCallResult = await _callAutomationClient.CreateCallAsync(callInvite, _playgroundConfig.CallbackUri);
+                    callConnectionId = createCallResult.CallConnectionProperties.CallConnectionId;
+
+                    _ = Task.Run(async () =>
+                    {
+                        // attaching ongoing event handler for specific events
+                        // This is useful for handling unexpected events could happen anytime (such as participants leaves the call and cal is disconnected)
+                        _ongoingEventHandler.AttachCountParticipantsInTheCall(callConnectionId);
+                        _ongoingEventHandler.AttachDisconnectedWrapup(callConnectionId);
+
+                        // Waiting for event related to createCallResult, which is CallConnected
+                        // Wait for 40 seconds before throwing timeout error.
+                        var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+                        CreateCallEventResult eventResult = await createCallResult.WaitForEventProcessorAsync(tokenSource.Token);
+
+                        if (eventResult.IsSuccess)
+                        {
+                            // call connected returned! Call is now established.
+                            // invoke top level menu now the call is connected;
+                            await _topLevelMenuService.InvokeTopLevelMenu(
+                                _target,
+                                createCallResult.CallConnection,
+                                eventResult.SuccessResult.ServerCallId);
+                        }
+                    });
+                }
             }
             catch (Exception e)
             {

@@ -1,5 +1,4 @@
-﻿using Azure.Communication.CallAutomation;
-using Azure.Communication;
+﻿using Azure.Communication;
 
 namespace CallAutomation_Playground.Interfaces
 {
@@ -7,7 +6,7 @@ namespace CallAutomation_Playground.Interfaces
     {
         Task<string> RecognizeTonesAsync(CommunicationIdentifier targetToRecognize, int minDigitToCollect, int maxDigitToCollect, Uri askPrompt, Uri retryPrompt);
 
-        Task AddParticipantAsync(PhoneNumberIdentifier targetToAdd, Uri successPrompt, Uri failurePrompt, Uri musicPrompt);
+        Task AddParticipantAsync(CommunicationIdentifier targetToAdd, Uri successPrompt, Uri failurePrompt, Uri musicPrompt);
 
         Task RemoveAllParticipantExceptCallerAsync(CommunicationIdentifier originalCaller);
 
