@@ -20,7 +20,7 @@ var acsPhonenumber = "<ACS_PHONE_NUMBER>";
 var targetPhonenumber = "<TARGET_PHONE_NUMBER>";
 
 // Base url of the app
-var callbackUriHost = Environment.GetEnvironmentVariable("VS_TUNNEL_URL")?.TrimEnd('/');
+var callbackUriHost = "<CALLBACK_URI_HOST_WITH_PROTOCOL>";
 
 // This will be set by fileStatus endpoints
 string recordingLocation = "";
@@ -28,15 +28,14 @@ string recordingLocation = "";
 string recordingId = "";
 
 CallAutomationClient callAutomationClient = new CallAutomationClient(acsConnectionString);
-builder.Services.AddSingleton(callAutomationClient);
 var app = builder.Build();
 
-app.MapPost("/api/outboundCall", async (ILogger<Program> logger) =>
+app.MapPost("/outboundCall", async (ILogger<Program> logger) =>
 {
     PhoneNumberIdentifier target = new PhoneNumberIdentifier(targetPhonenumber);
     PhoneNumberIdentifier caller = new PhoneNumberIdentifier(acsPhonenumber);
     CallInvite callInvite = new CallInvite(target, caller);
-    CreateCallResult createCallResult = await callAutomationClient.CreateCallAsync(callInvite, new Uri(callbackUriHost + "/api/callbacks")).ConfigureAwait(false);
+    CreateCallResult createCallResult = await callAutomationClient.CreateCallAsync(callInvite, new Uri(callbackUriHost + "/api/callbacks"));
 
     logger.LogInformation($"Created call with connection id: {createCallResult.CallConnectionProperties.CallConnectionId}");
 });
@@ -45,15 +44,15 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, ILogger<Program> 
 {
     foreach (var cloudEvent in cloudEvents)
     {
-        CallAutomationEventBase @event = CallAutomationEventParser.Parse(cloudEvent);
-        logger.LogInformation($"{@event?.GetType().Name} event received for call connection id: {@event?.CallConnectionId}");
-        var callConnection = callAutomationClient.GetCallConnection(@event.CallConnectionId);
+        CallAutomationEventBase parsedEvent = CallAutomationEventParser.Parse(cloudEvent);
+        logger.LogInformation($"{parsedEvent?.GetType().Name} parsedEvent received for call connection id: {parsedEvent?.CallConnectionId}");
+        var callConnection = callAutomationClient.GetCallConnection(parsedEvent.CallConnectionId);
         var callMedia = callConnection.GetCallMedia();
 
-        if (@event is CallConnected)
+        if (parsedEvent is CallConnected)
         {
             logger.LogInformation($"Start Recording...");
-            CallLocator callLocator = new ServerCallLocator(@event.ServerCallId);
+            CallLocator callLocator = new ServerCallLocator(parsedEvent.ServerCallId);
             var recordingResult = await callAutomationClient.GetCallRecording().StartAsync(new StartRecordingOptions(callLocator));
             recordingId = recordingResult.Value.RecordingId;
 
@@ -62,16 +61,13 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, ILogger<Program> 
             callMediaRecognizeDtmfOptions.Prompt = new FileSource(new Uri(callbackUriHost + "/audio/MainMenu.wav"));
             callMediaRecognizeDtmfOptions.InterruptPrompt = true;
             callMediaRecognizeDtmfOptions.InitialSilenceTimeout = TimeSpan.FromSeconds(5);
-            callMediaRecognizeDtmfOptions.InterToneTimeout = TimeSpan.FromSeconds(10);
-            callMediaRecognizeDtmfOptions.StopTones = new List<DtmfTone> { DtmfTone.Pound, DtmfTone.Asterisk };
 
             // Send request to recognize tones
             await callMedia.StartRecognizingAsync(callMediaRecognizeDtmfOptions);
         }
-        if (@event is RecognizeCompleted)
+        if (parsedEvent is RecognizeCompleted recognizeCompleted)
         {
             // Play audio once recognition is completed sucessfully
-            var recognizeCompleted = (RecognizeCompleted)@event;
             string selectedTone = ((DtmfResult)recognizeCompleted.RecognizeResult).ConvertToString();
 
             switch (selectedTone)
@@ -90,10 +86,9 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, ILogger<Program> 
                     break;
             }
         }
-        if (@event is RecognizeFailed)
+        if (parsedEvent is RecognizeFailed recognizeFailedEvent)
         {
-            logger.LogInformation($"RecognizeFailed event received for call connection id: {@event.CallConnectionId}");
-            var recognizeFailedEvent = (RecognizeFailed)@event;
+            logger.LogInformation($"RecognizeFailed parsedEvent received for call connection id: {parsedEvent.CallConnectionId}");
 
             // Check for time out, and then play audio message
             if (recognizeFailedEvent.ReasonCode.Equals(MediaEventReasonCode.RecognizeInitialSilenceTimedOut))
@@ -101,7 +96,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, ILogger<Program> 
                 await callMedia.PlayToAllAsync(new FileSource(new Uri(callbackUriHost + "/audio/Timeout.wav")));
             }
         }
-        if ((@event is PlayCompleted) || (@event is PlayFailed))
+        if ((parsedEvent is PlayCompleted) || (parsedEvent is PlayFailed))
         {
             logger.LogInformation($"Stop recording and terminating call.");
             callAutomationClient.GetCallRecording().Stop(recordingId);
@@ -111,7 +106,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, ILogger<Program> 
     return Results.Ok();
 }).Produces(StatusCodes.Status200OK);
 
-app.MapPost("/filestatus", ([FromBody] EventGridEvent[] eventGridEvents, ILogger<Program> logger) =>
+app.MapPost("/api/recordingFileStatus", (EventGridEvent[] eventGridEvents, ILogger<Program> logger) =>
 {
     foreach (var eventGridEvent in eventGridEvents)
     {
@@ -153,5 +148,4 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/audio"
 });
 
-app.UseHttpsRedirection();
 app.Run();
