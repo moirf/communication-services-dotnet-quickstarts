@@ -33,6 +33,7 @@ namespace CallAutomation_Playground
 
             // prepare calling modules to interact with this established call
             ICallingModules callingModule = new CallingModules(callConnection, _playgroundConfig);
+            PhoneNumberIdentifier caller = new PhoneNumberIdentifier(_playgroundConfig.DirectOfferedPhonenumber);
 
             try
             {
@@ -52,35 +53,24 @@ namespace CallAutomation_Playground
                     {
                         // Option 1: Collect phone number, then add that person to the call.
                         case "1":
-                            // recognize phonenumber
-                            string phoneNumberToCall = await callingModule.RecognizeTonesAsync(
-                                originalTarget,
-                                10,
-                                60,
-                                _playgroundConfig.AllPrompts.CollectPhoneNumber,
-                                _playgroundConfig.AllPrompts.Retry);
-                            var targetId = Tools.FormatPhoneNumbers(phoneNumberToCall);
-                            var identifierKind = Tools.GetIdentifierKind(targetId);
-
-                            if (identifierKind == Tools.CommunicationIdentifierKind.PhoneIdentity)
+                            var addedParticipants = _playgroundConfig.Addparticipant.Split(';');
+                            foreach (var Participantidentity in addedParticipants)
                             {
-                                PhoneNumberIdentifier pstntarget = new PhoneNumberIdentifier(targetId);
-                                formattedTargetIdentifier = pstntarget;
-                            }
-                            else if (identifierKind == Tools.CommunicationIdentifierKind.UserIdentity)
-                            {
-                                CommunicationUserIdentifier communicationIdentifier = new CommunicationUserIdentifier(phoneNumberToCall);
-                                formattedTargetIdentifier = communicationIdentifier;
-                            }
-                            _logger.LogInformation($"TargetIdentifier to Call[{formattedTargetIdentifier}]");
+                                CallInvite? callInvite = null;
+                                if (!string.IsNullOrEmpty(Participantidentity))
+                                {
+                                    formattedTargetIdentifier = Tools.FormateTargetIdentifier(Participantidentity.Trim());
+                                    _logger.LogInformation($"TargetIdentifier to Call[{formattedTargetIdentifier}]");
 
-                            // then add the phone number
-                            await callingModule.AddParticipantAsync(
-                                formattedTargetIdentifier,
-                                _playgroundConfig.AllPrompts.AddParticipantSuccess,
-                                _playgroundConfig.AllPrompts.AddParticipantFailure,
-                                _playgroundConfig.AllPrompts.Music);
-                            _logger.LogInformation($"Add Participant finished.");
+                                    // then add the phone number
+                                    await callingModule.AddParticipantAsync(
+                                        formattedTargetIdentifier,
+                                        _playgroundConfig.AllPrompts.AddParticipantSuccess,
+                                        _playgroundConfig.AllPrompts.AddParticipantFailure,
+                                        _playgroundConfig.AllPrompts.Music);
+                                    _logger.LogInformation($"Add Participant finished.");
+                                }
+                            }
                             break;
 
                         // Option 2: Remove all participants in the call except the original caller.
@@ -92,21 +82,12 @@ namespace CallAutomation_Playground
 
                         // Option 3: Transfer Call to another PSTN endpoint
                         case "3":
-                            // recognize phonenumber to transfer to
-                            string phoneNumberToTransfer = await callingModule.RecognizeTonesAsync(
-                                originalTarget,
-                                10,
-                                60,
-                                _playgroundConfig.AllPrompts.CollectPhoneNumber,
-                                _playgroundConfig.AllPrompts.Retry);
-
-                            string formattedTransferNumber = Tools.FormatPhoneNumbers(phoneNumberToTransfer);
-                            PhoneNumberIdentifier phoneIdentifierToTransfer = new PhoneNumberIdentifier(formattedTransferNumber);
-                            _logger.LogInformation($"Phonenumber to Transfer[{formattedTransferNumber}]");
+                            formattedTargetIdentifier = Tools.FormateTargetIdentifier(_playgroundConfig.ParticipantToTransfer);
+                            _logger.LogInformation($"Phonenumber to Transfer[{formattedTargetIdentifier}]");
 
                             // then transfer to the phonenumber
                             var trasnferSuccess = await callingModule.TransferCallAsync(
-                                phoneIdentifierToTransfer,
+                                formattedTargetIdentifier,
                                 _playgroundConfig.AllPrompts.TransferFailure);
 
                             if (trasnferSuccess)

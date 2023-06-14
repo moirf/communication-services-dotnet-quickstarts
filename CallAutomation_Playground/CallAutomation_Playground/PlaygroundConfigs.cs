@@ -16,6 +16,9 @@
         /// </summary>
         public string DirectOfferedPhonenumber { get; init; }
 
+        public string Addparticipant { get; init; }
+        public string ParticipantToTransfer { get; init; }
+
         /// <summary>
         /// List of all prompts from this sample's business logic.
         /// These recorded prompts must be uploaded to publicily available Uri endpoint.

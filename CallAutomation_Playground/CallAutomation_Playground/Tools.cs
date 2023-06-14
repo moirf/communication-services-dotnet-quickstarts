@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using Azure.Communication;
+using System.Text.RegularExpressions;
 
 namespace CallAutomation_Playground
 {
@@ -57,6 +58,21 @@ namespace CallAutomation_Playground
                   Regex.Match(participantnumber, Constants.phoneIdentityRegex, RegexOptions.IgnoreCase).Success ? CommunicationIdentifierKind.PhoneIdentity :
                   CommunicationIdentifierKind.UnknownIdentity;
         }
-
+        public static CommunicationIdentifier FormateTargetIdentifier(string participantnumber)
+        {
+            var identifierKind = GetIdentifierKind(participantnumber);
+            CommunicationIdentifier formattedTargetIdentifier = null;
+            if (identifierKind == Tools.CommunicationIdentifierKind.PhoneIdentity)
+            {
+                PhoneNumberIdentifier pstntarget = new PhoneNumberIdentifier(participantnumber);
+                formattedTargetIdentifier = pstntarget;
+            }
+            else if (identifierKind == Tools.CommunicationIdentifierKind.UserIdentity)
+            {
+                CommunicationUserIdentifier communicationIdentifier = new CommunicationUserIdentifier(participantnumber);
+                formattedTargetIdentifier = communicationIdentifier;
+            }
+            return formattedTargetIdentifier;
+        }
     }
 }
