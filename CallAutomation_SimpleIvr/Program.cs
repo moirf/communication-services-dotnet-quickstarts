@@ -142,7 +142,7 @@ app.MapPost("/api/calls/{contextId}", async (
 
             // Start recognize prompt - play audio and recognize 1-digit DTMF input
             var recognizeOptions =
-                new CallMediaRecognizeDtmfOptions(CommunicationIdentifier.FromRawId(callerId), maxTonesToCollect: 1)
+                new CallMediaRecognizeDtmfOptions(CommunicationIdentifier.FromRawId(sourceCallerID), maxTonesToCollect: 1)
                 {
                     InterruptPrompt = true,
                     InterToneTimeout = TimeSpan.FromSeconds(10),
