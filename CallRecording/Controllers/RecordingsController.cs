@@ -50,6 +50,7 @@ namespace RecordingApi.Controllers
         [HttpGet("OutboundCall")]
         public async Task<IActionResult> OutboundCall([FromQuery] string targetPhoneNumber)
         {
+            targetPhoneNumber = targetPhoneNumber.Replace(" ", "+");
             var callerId = new PhoneNumberIdentifier(_configuration["ACSAcquiredPhoneNumber"]);
             var target = new PhoneNumberIdentifier(targetPhoneNumber);
             var callInvite = new CallInvite(target, callerId);
