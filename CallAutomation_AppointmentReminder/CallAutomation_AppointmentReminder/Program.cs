@@ -64,7 +64,7 @@ app.MapPost("/api/call", async ([Required] string targetNo, CallAutomationClient
                 var response = await callAutomationClient.CreateCallAsync(createCallOption).ConfigureAwait(false);
                 logger.LogInformation($"Reponse from create call: {response.GetRawResponse()}" +
                     $"CallConnection Id : {response.Value.CallConnection.CallConnectionId}");
-                SourceId = response.Value.CallConnectionProperties.SourceIdentity.RawId;
+                SourceId = response.Value.CallConnectionProperties.SourceCallerIdNumber.RawId;
             }
         }
     }
@@ -110,7 +110,7 @@ app.MapPost("/api/callbacks", async (CloudEvent[] cloudEvents, CallAutomationCli
             logger.LogInformation($"CallConnected event received for call connection id: {@event.CallConnectionId}" + $" Correlation id: {@event.CorrelationId}");
             
             var properties = callConnection.GetCallConnectionProperties();
-            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceIdentity.RawId}," +
+            logger.LogInformation($"call connection properties -------> SourceIdentity : {properties.Value.SourceCallerIdNumber.RawId}," +
                 $"CallConnection State : {properties.Value.CallConnectionState}");
             logger.LogInformation($"targets ------->");
             foreach (var target in properties.Value.Targets)
