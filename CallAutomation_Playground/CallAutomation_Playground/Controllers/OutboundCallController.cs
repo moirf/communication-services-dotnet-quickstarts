@@ -19,6 +19,9 @@ namespace CallAutomation_Playground.Controllers
         private readonly ITopLevelMenuService _topLevelMenuService;
         private readonly IOngoingEventHandler _ongoingEventHandler;
         CommunicationIdentifier _target;
+        CommunicationIdentifier formattedTargetIdentifier;
+        CallConnection callConnection;
+        string callConnectionId = string.Empty;
 
         public OutboundCallController(
             ILogger<OutboundCallController> logger,
@@ -37,7 +40,7 @@ namespace CallAutomation_Playground.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateCall([FromQuery] string target)
         {
-            string callConnectionId = string.Empty;
+
             PhoneNumberIdentifier caller = new PhoneNumberIdentifier(_playgroundConfig.DirectOfferedPhonenumber);
             try
             {
@@ -76,6 +79,7 @@ namespace CallAutomation_Playground.Controllers
                         // Wait for 40 seconds before throwing timeout error.
                         var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(40));
                         CreateCallEventResult eventResult = await createCallResult.WaitForEventProcessorAsync(tokenSource.Token);
+                        callConnection = createCallResult.CallConnection;
 
                         if (eventResult.IsSuccess)
                         {
@@ -83,7 +87,7 @@ namespace CallAutomation_Playground.Controllers
                             // invoke top level menu now the call is connected;
                             await _topLevelMenuService.InvokeTopLevelMenu(
                                 _target,
-                                createCallResult.CallConnection,
+                                callConnection,
                                 eventResult.SuccessResult.ServerCallId);
                         }
                     });
@@ -97,5 +101,31 @@ namespace CallAutomation_Playground.Controllers
 
             return Ok(callConnectionId);
         }
+        [HttpPost("AddParticipant")]
+        public IActionResult AddParticipant([FromQuery] string target)
+        {
+            ICallingModules callingModule = new CallingModules(callConnection, _playgroundConfig);
+            var addedParticipants = target.Split(';');
+            foreach (var Participantidentity in addedParticipants)
+            {
+                CallInvite? callInvite = null;
+                if (!string.IsNullOrEmpty(Participantidentity))
+                {
+                    formattedTargetIdentifier = Tools.FormateTargetIdentifier(Participantidentity.Trim());
+                    _logger.LogInformation($"TargetIdentifier to Call[{formattedTargetIdentifier}]");
+
+                    // then add the phone number
+                    callingModule.AddParticipantAsync(
+                       formattedTargetIdentifier,
+                       _playgroundConfig.AllPrompts.AddParticipantSuccess,
+                       _playgroundConfig.AllPrompts.AddParticipantFailure,
+                       _playgroundConfig.AllPrompts.Music);
+                    _logger.LogInformation($"Add Participant finished.");
+                }
+            }
+
+            return Ok();
+        }
+
     }
 }
