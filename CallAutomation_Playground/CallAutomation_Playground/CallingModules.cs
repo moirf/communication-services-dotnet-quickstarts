@@ -11,6 +11,7 @@ namespace CallAutomation_Playground
     {
         private readonly CallConnection _callConnection;
         private readonly PlaygroundConfigs _playgroundConfig;
+        private readonly ILogger<CallingModules> _logger;
         CallInvite callInvite;
 
         public CallingModules(
@@ -106,6 +107,12 @@ namespace CallAutomation_Playground
                 // Success joining - play message and return
                 _ = addParticipantEventResult.SuccessResult;
                 await PlayMessageThenWaitUntilItEndsAsync(successPrompt);
+                _logger.LogInformation("Participant List after addparticipant -------->");
+                List<CallParticipant> participantsList = (await _callConnection.GetParticipantsAsync()).Value.ToList();
+                foreach (var participant in participantsList)
+                {
+                    _logger.LogInformation($"{participant.Identifier.RawId}");
+                }
             }
             else
             {

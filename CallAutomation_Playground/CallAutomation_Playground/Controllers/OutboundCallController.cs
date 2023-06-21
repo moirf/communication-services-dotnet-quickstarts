@@ -94,7 +94,8 @@ namespace CallAutomation_Playground.Controllers
                                 createCallResult.CallConnection,
                                 eventResult.SuccessResult.ServerCallId);
 
-                            _logger.LogInformation($"Targets after call connected ------>");
+                            _logger.LogInformation($"Source and Targets after call connected ------>");
+                            _logger.LogInformation($"Source:  [{caller}] \n Targets: \n");
                             foreach (var target in createCallResult.CallConnection.GetCallConnectionProperties().Value.Targets)
                             {
                                 _logger.LogInformation($"{target.RawId}");
