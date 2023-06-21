@@ -1,5 +1,4 @@
 using Azure.Communication;
-using Azure.Communication.CallAutomation;
 using CallAutomation_Playground.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,7 +35,7 @@ namespace CallAutomation_Playground.Controllers
                     var addparticipants = target.Split(',');
                     foreach (var addparticipant in addparticipants)
                     {
-                        if (string.IsNullOrEmpty(addparticipant))
+                        if (!string.IsNullOrEmpty(addparticipant))
                         {
                             var identifierKind = Tools.GetIdentifierKind(addparticipant);
 

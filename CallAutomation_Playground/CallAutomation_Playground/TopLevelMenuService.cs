@@ -51,58 +51,29 @@ namespace CallAutomation_Playground
 
                     switch (selectedTone)
                     {
-                        // Option 1: Collect phone number, then add that person to the call.
+                        // Option 1: Transfer Call to another PSTN endpoint
                         case "1":
-                            var addedParticipants = _playgroundConfig.Addparticipant.Split(';');
-                            foreach (var Participantidentity in addedParticipants)
-                            {
-                                CallInvite? callInvite = null;
-                                if (!string.IsNullOrEmpty(Participantidentity))
-                                {
-                                    formattedTargetIdentifier = Tools.FormateTargetIdentifier(Participantidentity.Trim());
-                                    _logger.LogInformation($"TargetIdentifier to Call[{formattedTargetIdentifier}]");
+                            //formattedTargetIdentifier = Tools.FormateTargetIdentifier(_playgroundConfig.ParticipantToTransfer);
+                            //_logger.LogInformation($"Phonenumber to Transfer[{formattedTargetIdentifier}]");
 
-                                    // then add the phone number
-                                    await callingModule.AddParticipantAsync(
-                                        formattedTargetIdentifier,
-                                        _playgroundConfig.AllPrompts.AddParticipantSuccess,
-                                        _playgroundConfig.AllPrompts.AddParticipantFailure,
-                                        _playgroundConfig.AllPrompts.Music);
-                                    _logger.LogInformation($"Add Participant finished.");
-                                }
-                            }
+                            //// then transfer to the phonenumber
+                            //var trasnferSuccess = await callingModule.TransferCallAsync(
+                            //    formattedTargetIdentifier,
+                            //    _playgroundConfig.AllPrompts.TransferFailure);
+
+                            //if (trasnferSuccess)
+                            //{
+                            //    _logger.LogInformation($"Successful Transfer - ending this logic.");
+                            //    return;
+                            //}
+                            //else
+                            //{
+                            //    _logger.LogInformation($"Transfer Failed - back to main menu.");
+                            //}
                             break;
 
-                        // Option 2: Remove all participants in the call except the original caller.
+                        // Option 2: Start Recording this call
                         case "2":
-                            _logger.LogInformation($"Removing all participants");
-
-                            await callingModule.RemoveAllParticipantExceptCallerAsync(originalTarget);
-                            break;
-
-                        // Option 3: Transfer Call to another PSTN endpoint
-                        case "3":
-                            formattedTargetIdentifier = Tools.FormateTargetIdentifier(_playgroundConfig.ParticipantToTransfer);
-                            _logger.LogInformation($"Phonenumber to Transfer[{formattedTargetIdentifier}]");
-
-                            // then transfer to the phonenumber
-                            var trasnferSuccess = await callingModule.TransferCallAsync(
-                                formattedTargetIdentifier,
-                                _playgroundConfig.AllPrompts.TransferFailure);
-
-                            if (trasnferSuccess)
-                            {
-                                _logger.LogInformation($"Successful Transfer - ending this logic.");
-                                return;
-                            }
-                            else
-                            {
-                                _logger.LogInformation($"Transfer Failed - back to main menu.");
-                            }
-                            break;
-
-                        // Option 4: Start Recording this call
-                        case "4":
                             // ... then Start Recording
                             // this will accept serverCallId and uses main service client
                             _logger.LogInformation($"Start Recording...");
@@ -114,14 +85,14 @@ namespace CallAutomation_Playground
                             await callingModule.PlayMessageThenWaitUntilItEndsAsync(_playgroundConfig.AllPrompts.PlayRecordingStarted);
                             break;
 
-                        // Option 5: Play Message and terminate the call only for the original caller.
-                        case "5":
+                        // Option 3: Play Message and terminate the call only for the original caller.
+                        case "3":
                             _logger.LogInformation($"terminate the call only for the original caller.");
                             await callConnection.HangUpAsync(false);
                             return;
 
-                        // Option 6: Play Message and terminate the call
-                        case "6":
+                        // Option 4: Play Message and terminate the call
+                        case "4":
                             _logger.LogInformation($"Terminating Call. Due to wrong input too many times, exception happened, or user requested termination.");
                             await callingModule.PlayMessageThenWaitUntilItEndsAsync(_playgroundConfig.AllPrompts.Goodbye);
                             await callingModule.TerminateCallAsync();

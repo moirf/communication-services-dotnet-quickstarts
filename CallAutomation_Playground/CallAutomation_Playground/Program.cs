@@ -25,8 +25,6 @@ PlaygroundConfigs playgroundConfig = new PlaygroundConfigs
 {
     CallbackUri = new Uri(callbackUriHost + "api/event"),
     DirectOfferedPhonenumber = ReadingConfigs(builder, "DIRECT_OFFERED_PHONE_NUMBER"),
-    Addparticipant = ReadingConfigs(builder, "ADD_PARTICIPANT_NUMBER"),
-    ParticipantToTransfer = ReadingConfigs(builder, "PARTICIPANT_TO_TRANSFER"),
     AllPrompts = new PlaygroundConfigs.Prompts
     {
         MainMenu = new Uri(ReadingConfigs(builder, "PROMPT_MAIN_MENU")),
