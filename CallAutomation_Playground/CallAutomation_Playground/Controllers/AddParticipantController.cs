@@ -33,25 +33,32 @@ namespace CallAutomation_Playground.Controllers
             {
                 if (!string.IsNullOrEmpty(target))
                 {
-                    var identifierKind = Tools.GetIdentifierKind(target);
-
-                    if (identifierKind == Tools.CommunicationIdentifierKind.PhoneIdentity)
+                    var addparticipants = target.Split(',');
+                    foreach (var addparticipant in addparticipants)
                     {
-                        PhoneNumberIdentifier pstntarget = new PhoneNumberIdentifier(Tools.FormatPhoneNumbers(target));
-                        _target = pstntarget;
-                    }
-                    else if (identifierKind == Tools.CommunicationIdentifierKind.UserIdentity)
-                    {
-                        CommunicationUserIdentifier communicationIdentifier = new CommunicationUserIdentifier(target);
-                        _target = communicationIdentifier;
-                    }
-                    _logger.LogInformation($"Adding Participant [{_target}]");
+                        if (string.IsNullOrEmpty(addparticipant))
+                        {
+                            var identifierKind = Tools.GetIdentifierKind(addparticipant);
 
-                    ICallingModules callingModule = new CallingModules(callConnectionConfig.callConnection, _playgroundConfig);
-                    await callingModule.AddParticipantAsync(_target,
-                        _playgroundConfig.AllPrompts.AddParticipantSuccess,
-                        _playgroundConfig.AllPrompts.AddParticipantFailure,
-                        _playgroundConfig.AllPrompts.Music);
+                            if (identifierKind == Tools.CommunicationIdentifierKind.PhoneIdentity)
+                            {
+                                PhoneNumberIdentifier pstntarget = new PhoneNumberIdentifier(Tools.FormatPhoneNumbers(addparticipant));
+                                _target = pstntarget;
+                            }
+                            else if (identifierKind == Tools.CommunicationIdentifierKind.UserIdentity)
+                            {
+                                CommunicationUserIdentifier communicationIdentifier = new CommunicationUserIdentifier(addparticipant);
+                                _target = communicationIdentifier;
+                            }
+                            _logger.LogInformation($"Adding Participant [{_target}]");
+
+                            ICallingModules callingModule = new CallingModules(callConnectionConfig.callConnection, _playgroundConfig);
+                            await callingModule.AddParticipantAsync(_target,
+                                _playgroundConfig.AllPrompts.AddParticipantSuccess,
+                                _playgroundConfig.AllPrompts.AddParticipantFailure,
+                                _playgroundConfig.AllPrompts.Music);
+                        }
+                    }
                 }
             }
             catch (Exception e)

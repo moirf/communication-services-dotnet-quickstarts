@@ -116,6 +116,11 @@ namespace CallAutomation_Playground
 
         }
 
+        public async Task RemoveParticipantAsync(CommunicationIdentifier targetToRemove)
+        {
+            await _callConnection.RemoveParticipantAsync(targetToRemove);
+            return;
+        }
         public async Task RemoveAllParticipantExceptCallerAsync(CommunicationIdentifier originalCaller)
         {
             // List all participants in the call

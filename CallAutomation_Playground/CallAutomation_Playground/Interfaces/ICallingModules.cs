@@ -8,6 +8,8 @@ namespace CallAutomation_Playground.Interfaces
 
         Task AddParticipantAsync(CommunicationIdentifier targetToAdd, Uri successPrompt, Uri failurePrompt, Uri musicPrompt);
 
+        Task RemoveParticipantAsync(CommunicationIdentifier targetToRemove);
+
         Task RemoveAllParticipantExceptCallerAsync(CommunicationIdentifier originalCaller);
 
         Task<bool> TransferCallAsync(CommunicationIdentifier transferTo, Uri failurePrompt);
