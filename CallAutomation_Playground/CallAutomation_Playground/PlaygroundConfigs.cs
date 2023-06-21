@@ -1,4 +1,6 @@
-﻿namespace CallAutomation_Playground
+﻿using Azure.Communication.CallAutomation;
+
+namespace CallAutomation_Playground
 {
     public class PlaygroundConfigs
     {
@@ -43,5 +45,10 @@
 
             public Uri Music { get; init; }
         }
+    }
+    
+    public static class callConnectionConfig
+    {
+        public static CallConnection callConnection { get; set; }
     }
 }

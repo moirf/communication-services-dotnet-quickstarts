@@ -81,6 +81,7 @@ namespace CallAutomation_Playground.Controllers
                         {
                             // call connected returned! Call is now established.
                             // invoke top level menu now the call is connected;
+                            callConnectionConfig.callConnection = createCallResult.CallConnection;
                             await _topLevelMenuService.InvokeTopLevelMenu(
                                 _target,
                                 createCallResult.CallConnection,
