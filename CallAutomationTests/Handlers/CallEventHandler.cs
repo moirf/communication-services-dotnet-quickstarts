@@ -124,7 +124,7 @@ namespace CallAutomation.Scenarios.Handlers
                         _logger.LogInformation($"Adding supervisor to call.");
                         var callConnectionId = addParticipantSucceeded.CallConnectionId;
                         var callConnection = _callAutomationService.GetCallConnection(callConnectionId);
-                        callConnection.MuteParticipants(addParticipantSucceeded.Participant, operationContext);
+                        //callConnection.MuteParticipants(addParticipantSucceeded.Participant, operationContext);
 
                         _callContextService.AddAgentAcsId(callConnectionId, addParticipantSucceeded.Participant.RawId);
                     }
@@ -526,8 +526,8 @@ namespace CallAutomation.Scenarios.Handlers
                             CancelAccountIdSpeechRecognizer(callConnectionId, operationContext);
                         }
 
-                        var authenticationCollectTonesResult = (CollectTonesResult)recognizeCompleted.RecognizeResult;
-                        var accountId = authenticationCollectTonesResult.CombineAll();
+                        var authenticationCollectTonesResult = (DtmfResult)recognizeCompleted.RecognizeResult;
+                        var accountId = authenticationCollectTonesResult.Tones;
                         //await ValidateAccount(callConnection, callConnectionId, accountId, textToSpeechLocale, callerId);
                         break;
 
@@ -536,18 +536,8 @@ namespace CallAutomation.Scenarios.Handlers
 
                         switch (recognizeCompleted.RecognizeResult)
                         {
-                            // Take action for Recognition through Choices
-                            case ChoiceResult choiceResult:
-                                if (!useCustomPhraseRecognition)
-                                {
-                                    await _callAutomationService.PlayMenuChoiceAsync(choiceResult.Label, callMedia, textToSpeechLocale);
-
-
-                                }
-                                break;
-
                             //Take action for Recognition through DTMF
-                            case CollectTonesResult mainMenuCollectedTonesResult:
+                            case DtmfResult mainMenuCollectedTonesResult:
                                 if (useCustomPhraseRecognition)
                                 {
                                     CancelMainMenuSpeechRecognizer(callConnectionId, operationContext);
@@ -561,7 +551,7 @@ namespace CallAutomation.Scenarios.Handlers
                         }
                         break;
 
-                    case Constants.OperationContext.AiPairing when (recognizeCompleted.RecognizeResult is CollectTonesResult dtmfTones):
+                    case Constants.OperationContext.AiPairing when (recognizeCompleted.RecognizeResult is DtmfResult dtmfTones):
                         _logger.LogInformation("RecognizeCompleted called AI pairing speech recognizer cancel");
                         CancelAiPairingSpeechRecognizer(callConnectionId, operationContext);
 
@@ -574,13 +564,8 @@ namespace CallAutomation.Scenarios.Handlers
 
                         switch (recognizeCompleted.RecognizeResult)
                         {
-                            // Take action for Recognition through Choices
-                            case ChoiceResult choiceResult:
-                                await _callAutomationService.PlayCallbackOfferChoiceAsync(callerId, choiceResult.Label, callMedia, textToSpeechLocale);
-                                break;
-
                             //Take action for Recognition through DTMF
-                            case CollectTonesResult callbackOfferResult:
+                            case DtmfResult callbackOfferResult:
                                 await _callAutomationService.PlayCallbackOfferChoiceAsync(callerId, callbackOfferResult.Tones[0], callMedia, textToSpeechLocale);
                                 break;
 
@@ -598,29 +583,10 @@ namespace CallAutomation.Scenarios.Handlers
 
                         switch (recognizeCompleted.RecognizeResult)
                         {
-                            // Take action for Recognition through Choices
-                            case ChoiceResult choiceResult:
-                                scheduleAfter = await _callAutomationService.PlayCallbackTimeSelectionChoiceAsync(
-                                    callerId, choiceResult.Label, callMedia, textToSpeechLocale, estimatedWaitTime);
-
-                                if (scheduleAfter is not null)
-                                {
-                                    //await EnqueueCall(callConnectionId, operationContext,
-                                    //    recognizeCompleted.CorrelationId, callerId, checkEstimatedWaitTime: false, scheduleAfter: scheduleAfter);
-                                }
-
-                                break;
-
                             //Take action for Recognition through DTMF
-                            case CollectTonesResult callbackTimeSelectionResult:
+                            case DtmfResult callbackTimeSelectionResult:
                                 scheduleAfter = await _callAutomationService.PlayCallbackTimeSelectionChoiceAsync(
                                     callerId, callbackTimeSelectionResult.Tones[0], callMedia, textToSpeechLocale, estimatedWaitTime);
-
-                                if (scheduleAfter is not null)
-                                {
-                                    //await EnqueueCall(callConnectionId, operationContext,
-                                    //    recognizeCompleted.CorrelationId, callerId, checkEstimatedWaitTime: false, scheduleAfter: scheduleAfter);
-                                }
 
                                 break;
 
@@ -635,25 +601,8 @@ namespace CallAutomation.Scenarios.Handlers
 
                         switch (recognizeCompleted.RecognizeResult)
                         {
-                            // Take action for Recognition through Choices
-                            case ChoiceResult choiceResult:
-                                if (choiceResult.Label.Equals(Constants.IvrCallbackChoices.One, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia,
-                                        ivrText[$"{Constants.IvrTextKeys.ScheduledCallbackDialoutAccepted}"],
-                                        Constants.OperationContext.ScheduledCallbackDialoutAccepted, textToSpeechLocale);
-                                }
-                                else
-                                {
-                                    await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia,
-                                        ivrText[$"{Constants.IvrTextKeys.ScheduledCallbackDialoutRejected}"],
-                                        Constants.OperationContext.ScheduledCallbackDialoutRejected, textToSpeechLocale);
-                                }
-
-                                break;
-
                             //Take action for Recognition through DTMF
-                            case CollectTonesResult callbackDialoutResult:
+                            case DtmfResult callbackDialoutResult:
                                 if (callbackDialoutResult.Tones[0] == DtmfTone.One)
                                 {
                                     await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia,
@@ -703,12 +652,6 @@ namespace CallAutomation.Scenarios.Handlers
                 switch (operationContext)
                 {
                     // customer made no input
-                    case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
-                        if (!useCustomPhraseRecognition)
-                        {
-                            await PlayMainMenu(callConnection, textToSpeechLocale, callerId);
-                        }
-                        break;
                     case Constants.OperationContext.MainMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
                         if (useCustomPhraseRecognition)
                         {
@@ -724,14 +667,11 @@ namespace CallAutomation.Scenarios.Handlers
                         await PlayMainMenu(callConnection, textToSpeechLocale, callerId, prerollText: ivrText[Constants.IvrTextKeys.InvalidOption]);
                         break;
                     case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
-                    case Constants.OperationContext.ScheduledCallbackOffer when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
                     case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
-                    case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
                         await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia, ivrText[Constants.IvrTextKeys.ScheduledCallbackRejected],
                             Constants.OperationContext.ScheduledCallbackRejected, textToSpeechLocale);
                         break;
                     case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeInitialSilenceTimedOut):
-                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeSpeechOptionNotMatched):
                         await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia, ivrText[Constants.IvrTextKeys.NoResponse],
                             Constants.OperationContext.ScheduledCallbackDialoutRejected, textToSpeechLocale);
                         break;
@@ -740,9 +680,6 @@ namespace CallAutomation.Scenarios.Handlers
                     case Constants.OperationContext.ScheduledCallbackTimeSelectionMenu when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeIncorrectToneDetected):
                         await _callAutomationService.PlayTextToSpeechToAllAsync(callMedia, $"{ivrText[Constants.IvrTextKeys.InvalidOption]} {ivrText[Constants.IvrTextKeys.ScheduledCallbackRejected]}",
                             Constants.OperationContext.ScheduledCallbackRejected, textToSpeechLocale);
-                        break;
-                    case Constants.OperationContext.ScheduledCallbackDialout when (recognizeFailed.ReasonCode == MediaEventReasonCode.RecognizeIncorrectToneDetected):
-                        await _callAutomationService.PlayCallbackDialoutOptionsAsync(callerId, callMedia, textToSpeechLocale, ivrText[Constants.IvrTextKeys.InvalidOption]);
                         break;
                     // route caller to all agents queue
                     case Constants.OperationContext.AccountIdValidation:
@@ -870,11 +807,10 @@ namespace CallAutomation.Scenarios.Handlers
                 _logger.LogInformation("PlayMainMenu listening for customer audio");
 
                 CallConnectionProperties callConnectionProerties = await callConnection.GetCallConnectionPropertiesAsync();
-                var mediaSubscriptionId = callConnectionProerties.MediaSubscriptionId;
                 //var audioStreeam = _callContextService.GetAudioStream(mediaSubscriptionId);
                 // if (audioStreeam != null)
                 {
-                    _logger.LogInformation($"PlayMainMenu found an audiostream for MediaSubscriptionId '{mediaSubscriptionId}', connection ID '{callConnectionId}'");
+                    _logger.LogInformation($"PlayMainMenu found', connection ID '{callConnectionId}'");
 
                     try
                     {
@@ -949,42 +885,12 @@ namespace CallAutomation.Scenarios.Handlers
             _logger.LogInformation("Listening for account ID number via voice recognition");
 
             CallConnectionProperties callConnectionProerties = await callConnection.GetCallConnectionPropertiesAsync();
-            var mediaSubscriptionId = callConnectionProerties.MediaSubscriptionId;
-            _callContextService.SetMediaSubscriptionId(callConnectionId, mediaSubscriptionId);
 
             //var audioStreeam = _callContextService.GetAudioStream(mediaSubscriptionId);
             //if (audioStreeam != null)
             {
-                _logger.LogInformation($"CallConnected found an audiostream for MediaSubscriptionId '{mediaSubscriptionId}', connection ID '{callConnectionId}'");
-
-                var segmentationSilenceTimeoutMs = ivrConfig["SegmentationSilenceTimeoutMsForAccountId"];
-                var digitsToCollect = 6;
-
+                _logger.LogInformation($"CallConnected found', connection ID '{callConnectionId}'");
                 _callContextService.SetAccountIdSpeechRecognizerCancellationTokenSource(callConnectionId, speechRecognitionCancellationTokenSource);
-
-                // TODO: make this configurable
-                //await _speechRecognizerService.RecognizeDigitsFromAudioStreamAsync(audioStreeam, digitsToCollect, ivrConfig["SpeechRecognitionLanguage"], segmentationSilenceTimeoutMs, speechRecognitionCancellationTokenSource.Token, async (accountId) =>
-                //{
-                //    if (!speechRecognitionCancellationTokenSource.IsCancellationRequested)
-                //    {
-                //        _logger.LogInformation("RecognizeDigitsFromAudioStreamAsync called cancel");
-                //        speechRecognitionCancellationTokenSource.Cancel();
-                //    }
-
-                //    if (!string.IsNullOrWhiteSpace(accountId))
-                //    {
-                //        // stop any audio currently playing + stop DTMF recognizer
-                //        dtmfCancellationTokenSource.Cancel();
-                //        await _callAutomationService.CancelAllMediaOperationsAsync(callMedia, callConnectionId, Constants.OperationContext.AccountIdValidation);
-
-                //        // validate account ID we received from speech recognizer
-                //        await ValidateAccount(callConnection, callConnectionId, accountId, textToSpeechLocale, callerId);
-                //    }
-                //    else
-                //    {
-                //        _logger.LogInformation($"RecognizeDigitsFromAudioStream captured no usable audio for connection ID '{callConnectionId}'");
-                //    }
-                //});
             }
         }
 

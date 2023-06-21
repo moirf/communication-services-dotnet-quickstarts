@@ -14,11 +14,8 @@ namespace CallAutomation.Scenarios.Interfaces
         CallConnection GetCallConnection(string callConnectionId);
         Task PlayMenuChoiceAsync(DtmfTone choiceOrTone, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null);
         Task PlayMenuOptionsAsync(string callerId, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null, CancellationToken cancellationToken = default);
-        Task PlayCallbackOfferOptionsAsync(string callerId, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null);
         Task<bool> PlayCallbackOfferChoiceAsync(string callerId, DtmfTone choiceOrTone, CallMedia callMedia, string textToSpeechLocale);
-        Task PlayCallbackTimeSelectionOptionsAsync(string callerId, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null);
         Task<TimeSpan?> PlayCallbackTimeSelectionChoiceAsync(string callerId, DtmfTone choiceOrTone, CallMedia callMedia, string textToSpeechLocale, double estimatedWaitTime);
-        Task PlayCallbackDialoutOptionsAsync(string callerId, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null);
         Task StartRecognizingDtmfAsync(string callerId, string operationContext, CallMedia callMedia, string textToSpeechLocale, int initialSilenceTimeout, string? prerollText = null, CancellationToken cancellationToken = default);
         Task PlayHoldMusicAsync(string operationContext, CallMedia callMedia, bool loop = true);
         Task PlayPairingCompletedAsync(string department, string operationContext, CallMedia callMedia, string textToSpeechLocale);

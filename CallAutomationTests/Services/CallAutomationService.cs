@@ -36,10 +36,7 @@ namespace CallAutomation.Scenarios.Services
                 var callerId = Uri.EscapeDataString(incomingCallEvent.From.RawId.ToString());
                 //var authKey = $"{AuthenticationConstants.EventGridAuthenticationQueryParameterName}={_configuration.GetConnectionString(AuthenticationConstants.EventGridSecretName)}";
                 var callbackUri = new Uri($"{_configuration["BaseUri"]}/callbacks/{Guid.NewGuid()}?callerId={callerId}");
-                var answerCallOptions = new AnswerCallOptions(incomingCallEvent.IncomingCallContext, callbackUri)
-                {
-                    AzureCognitiveServicesEndpointUrl = new Uri(_configuration["CognitiveServicesEndpointUri"])
-                };
+                var answerCallOptions = new AnswerCallOptions(incomingCallEvent.IncomingCallContext, callbackUri);
 
                 //var ivrConfig = GetIvrConfig();
                 //if (ivrConfig.GetValue<bool>("UseNlu"))
@@ -73,7 +70,6 @@ namespace CallAutomation.Scenarios.Services
 
                 var createCallOptions = new CreateCallOptions(callInvite, callbackUri)
                 {
-                    AzureCognitiveServicesEndpointUrl = new Uri(_configuration["CognitiveServicesEndpointUri"]),
                     OperationContext = Constants.OperationContext.ScheduledCallbackDialout
                 };
 
@@ -151,36 +147,6 @@ namespace CallAutomation.Scenarios.Services
                 // recognize 1-digit DTMF input
                 await StartRecognizingDtmfAsync(callMedia, textToSpeech, textToSpeechLocale, maxTonesToCollect: 1, ivrConfig.GetValue<int>("MainMenuDtmfTimeout"), Constants.OperationContext.MainMenu, callerId, allowInterrupt: true, cancellationToken);
             }
-            else
-            {
-                var choices = new List<RecognizeChoice>
-                {
-                    new(QueueConstants.MagentaHome, GetRecognizedPhrases("Queues:HomeServiceQueue:RecognizePhrases"))
-                    {
-                        Tone = DtmfTone.One
-                    },
-                    new(QueueConstants.MagentaMobile, GetRecognizedPhrases("Queues:MobileServiceQueue:RecognizePhrases"))
-                    {
-                        Tone = DtmfTone.Two
-                    },
-                    new(QueueConstants.MagentaTV, GetRecognizedPhrases("Queues:TvServiceQueue:RecognizePhrases"))
-                    {
-                        Tone = DtmfTone.Three
-                    },
-                    new(Constants.OperationContext.EndCall, GetRecognizedPhrases("Ivr:EndCallRecognizePhrases"))
-                    {
-                        Tone = DtmfTone.Four
-                    },
-                    // queue directly to all agents
-                    new(QueueConstants.MagentaDefault, GetRecognizedPhrases("Ivr:OperatorRecognizePhrases"))
-                    {
-                        Tone = DtmfTone.Zero
-                    }
-                };
-
-                // recognize speech or 1-digit DTMF input
-                await StartRecognizingChoiceAsync(callMedia, textToSpeech, textToSpeechLocale, choices, Constants.OperationContext.MainMenu, callerId, cancellationToken);
-            }
         }
 
         public async Task PlayMenuChoiceAsync(DtmfTone choiceOrTone, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null)
@@ -233,80 +199,15 @@ namespace CallAutomation.Scenarios.Services
             await PlayTextToSpeechToAllAsync(callMedia, textToSpeech, operationContext, textToSpeechLocale);
         }
 
-        public async Task PlayCallbackOfferOptionsAsync(string callerId, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null)
-        {
-            _logger.LogInformation($"PlayCallbackOfferOptionsAsync called with '{callerId}'");
-
-            var choices = new List<RecognizeChoice>
-            {
-                new(Constants.IvrCallbackChoices.Yes, GetRecognizedPhrases("Ivr:RecognizePhrasesYes"))
-                {
-                    Tone = DtmfTone.One
-                },
-                new(Constants.IvrCallbackChoices.No, GetRecognizedPhrases("Ivr:RecognizePhrasesNo"))
-                {
-                    Tone = DtmfTone.Two
-                }
-            };
-
-            var ivrText = GetIvrText();
-            var textToSpeech = string.IsNullOrWhiteSpace(prerollText)
-                ? ivrText[Constants.IvrTextKeys.ScheduledCallbackOffered]
-                : $"{prerollText} {ivrText[Constants.IvrTextKeys.ScheduledCallbackOffered]}";
-
-            // Start recognize prompt - play audio and recognize 1-digit DTMF input
-            await StartRecognizingChoiceAsync(callMedia, textToSpeech, textToSpeechLocale, choices, Constants.OperationContext.ScheduledCallbackOffer, callerId);
-        }
-
         public async Task<bool> PlayCallbackOfferChoiceAsync(string callerId, DtmfTone choiceOrTone, CallMedia callMedia, string textToSpeechLocale)
         {
             _logger.LogInformation($"PlayCallbackOfferChoiceAsync called with '{choiceOrTone}'");
 
             var ivrText = GetIvrText();
 
-            if (choiceOrTone == DtmfTone.One || choiceOrTone.ToString().Equals(Constants.IvrCallbackChoices.Yes, StringComparison.OrdinalIgnoreCase))
-            {
-                await PlayCallbackTimeSelectionOptionsAsync(callerId, callMedia, textToSpeechLocale);
-                return true;
-            }
-            else
-            {
-                await PlayTextToSpeechToAllAsync(callMedia, ivrText[Constants.IvrTextKeys.ScheduledCallbackRejected],
-                    Constants.OperationContext.ScheduledCallbackRejected, textToSpeechLocale);
-                return false;
-            }
-        }
-
-        public async Task PlayCallbackTimeSelectionOptionsAsync(string callerId, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null)
-        {
-            _logger.LogInformation($"PlayCallbackTimeSelectionOptionsAsync called with '{callerId}'");
-
-            var choices = new List<RecognizeChoice>
-            {
-                new(Constants.IvrCallbackChoices.One, new [] { "One" })
-                {
-                    Tone = DtmfTone.One
-                },
-                new(Constants.IvrCallbackChoices.Two, new [] { "Two" } )
-                {
-                    Tone = DtmfTone.Two
-                },
-                new(Constants.IvrCallbackChoices.Three, new [] { "Three" } )
-                {
-                    Tone = DtmfTone.Three
-                }
-            };
-
-            var timeWindow1Minutes = _configuration.GetValue<int>("ScheduledCallbacks:TimeWindow1Minutes");
-            var timeWindow2Minutes = _configuration.GetValue<int>("ScheduledCallbacks:TimeWindow2Minutes");
-
-            var ivrText = GetIvrText();
-            var textToSpeech = string.IsNullOrWhiteSpace(prerollText)
-                ? string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackTimeSelection], timeWindow1Minutes, timeWindow2Minutes)
-                : $"{prerollText} {string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackTimeSelection], timeWindow1Minutes, timeWindow2Minutes)}";
-
-            // Start recognize prompt - play audio and recognize speech or 1-digit DTMF input
-            await StartRecognizingChoiceAsync(callMedia, textToSpeech, textToSpeechLocale, choices, Constants.OperationContext.ScheduledCallbackTimeSelectionMenu, callerId);
+            await PlayTextToSpeechToAllAsync(callMedia, ivrText[Constants.IvrTextKeys.ScheduledCallbackRejected],
+                Constants.OperationContext.ScheduledCallbackRejected, textToSpeechLocale);
+            return false;
         }
 
         public async Task<TimeSpan?> PlayCallbackTimeSelectionChoiceAsync(string callerId, DtmfTone choiceOrTone, CallMedia callMedia, string textToSpeechLocale, double estimatedWaitTime)
@@ -326,19 +227,19 @@ namespace CallAutomation.Scenarios.Services
 
             if (choiceOrTone == DtmfTone.One || choiceOrTone.ToString().Equals(Constants.IvrCallbackChoices.One, StringComparison.OrdinalIgnoreCase))
             {
-                PlayTextToSpeechToAllAsync(callMedia, string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackAccepted], estimatedWaitTimeStr, target),
+                await PlayTextToSpeechToAllAsync(callMedia, string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackAccepted], estimatedWaitTimeStr, target),
                     Constants.OperationContext.ScheduledCallbackAccepted, textToSpeechLocale);
                 return TimeSpan.FromMinutes(estimatedWaitTime);
             }
             if (choiceOrTone == DtmfTone.Two || choiceOrTone.ToString().Equals(Constants.IvrCallbackChoices.Two, StringComparison.OrdinalIgnoreCase))
             {
-                PlayTextToSpeechToAllAsync(callMedia, string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackAccepted], timeWindow1MinutesStr, target),
+                await PlayTextToSpeechToAllAsync(callMedia, string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackAccepted], timeWindow1MinutesStr, target),
                     Constants.OperationContext.ScheduledCallbackAccepted, textToSpeechLocale);
                 return TimeSpan.FromMinutes(timeWindow1Minutes);
             }
             if (choiceOrTone == DtmfTone.Three || choiceOrTone.ToString().Equals(Constants.IvrCallbackChoices.Three, StringComparison.OrdinalIgnoreCase))
             {
-                PlayTextToSpeechToAllAsync(callMedia, string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackAccepted], timeWindow2MinutesStr, target),
+                await PlayTextToSpeechToAllAsync(callMedia, string.Format(ivrText[Constants.IvrTextKeys.ScheduledCallbackAccepted], timeWindow2MinutesStr, target),
                     Constants.OperationContext.ScheduledCallbackAccepted, textToSpeechLocale);
                 return TimeSpan.FromMinutes(timeWindow2Minutes);
             }
@@ -348,28 +249,6 @@ namespace CallAutomation.Scenarios.Services
                     Constants.OperationContext.ScheduledCallbackRejected, textToSpeechLocale);
                 return null;
             }
-        }
-
-        public async Task PlayCallbackDialoutOptionsAsync(string callerId, CallMedia callMedia, string textToSpeechLocale, string? prerollText = null)
-        {
-            _logger.LogInformation($"PlayCallbackDialoutOptionsAsync called with '{callerId}'");
-
-            var choices = new List<RecognizeChoice>
-            {
-                new (Constants.IvrCallbackChoices.One, GetRecognizedPhrases("Ivr:RecognizePhrasesYes"))
-                {
-                    Tone = DtmfTone.One
-                },
-                new (Constants.IvrCallbackChoices.Two, GetRecognizedPhrases("Ivr:RecognizePhrasesNo"))
-                {
-                    Tone = DtmfTone.Two
-                }
-            };
-
-            var ivrText = GetIvrText();
-            var textToSpeech = $"{prerollText ?? string.Empty} {ivrText[Constants.IvrTextKeys.ScheduledCallbackDialout]}";
-
-            await StartRecognizingChoiceAsync(callMedia, textToSpeech, textToSpeechLocale, choices, Constants.OperationContext.ScheduledCallbackDialout, callerId);
         }
 
         public async Task PlaceCallOnHoldAsync(string callConnectionId, string operationContext, string[] agentAcsIds, bool playMusic = true)
@@ -492,12 +371,7 @@ namespace CallAutomation.Scenarios.Services
             _logger.LogInformation($"PlayTextToSpeechToAllAsync called with '{audioText}' and operationContext '{operationContext}', loop = {loop}");
 
             //you can provide SourceLocale and VoiceGender as one option for playing audio
-            var playSource = new TextSource(audioText)
-            {
-                SourceLocale = audioTextLocale,
-                VoiceGender = GenderType.Female
-            };
-
+            var playSource = new FileSource(new Uri(audioText));
             await PlayAudioToAllAsync(callMedia, playSource, operationContext, loop);
         }
 
@@ -573,37 +447,8 @@ namespace CallAutomation.Scenarios.Services
             return GetArrayFromConfig(section);
         }
 
-        private async Task StartRecognizingChoiceAsync(CallMedia callMedia, string textToSpeech, string textToSpeechLocale, List<RecognizeChoice> choices, string operationContext, string callerId, CancellationToken cancellationToken = default)
-        {
-            var prompt = new TextSource(textToSpeech)
-            {
-                SourceLocale = textToSpeechLocale,
-                VoiceGender = GenderType.Female,
-            };
-
-            var ivrConfig = GetIvrConfig();
-            var initialSilenceTimeout = ivrConfig.GetValue<int>("RecognizerInitialSilenceTimeout");
-            var allowMenuInterrupt = ivrConfig.GetValue<bool>("AllowMenuInterrupt");
-
-            var recognizeOptions = new CallMediaRecognizeChoiceOptions(CommunicationIdentifier.FromRawId(callerId), choices)
-            {
-                InitialSilenceTimeout = TimeSpan.FromSeconds(initialSilenceTimeout),
-                OperationContext = operationContext,
-                InterruptPrompt = allowMenuInterrupt,
-                Prompt = prompt,
-            };
-
-            await callMedia.StartRecognizingAsync(recognizeOptions, cancellationToken);
-        }
-
         private async Task StartRecognizingDtmfAsync(CallMedia callMedia, string textToSpeech, string textToSpeechLocale, int maxTonesToCollect, int initialSilenceTimeout, string operationContext, string callerId, bool allowInterrupt = true, CancellationToken cancellationToken = default)
         {
-            var prompt = new TextSource(textToSpeech)
-            {
-                SourceLocale = textToSpeechLocale,
-                VoiceGender = GenderType.Female,
-            };
-
             var ivrConfig = GetIvrConfig();
             var interToneTimeout = ivrConfig.GetValue<int>("DtmfInterToneTimeout");
 
@@ -613,7 +458,6 @@ namespace CallAutomation.Scenarios.Services
                 OperationContext = operationContext,
                 InterruptPrompt = allowInterrupt,
                 InterToneTimeout = TimeSpan.FromSeconds(interToneTimeout),
-                Prompt = prompt
             };
 
             await callMedia.StartRecognizingAsync(recognizeOptions, cancellationToken);
