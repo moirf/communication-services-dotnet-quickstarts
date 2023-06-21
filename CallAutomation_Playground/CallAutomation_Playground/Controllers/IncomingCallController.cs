@@ -70,6 +70,11 @@ namespace CallAutomation_Playground.Controllers
                     AnswerCallResult answerCallResult = await _callAutomationClient.AnswerCallAsync(incomingCallEventData.IncomingCallContext, _playgroundConfig.CallbackUri);
                     callConnectionId = answerCallResult.CallConnectionProperties.CallConnectionId;
                     _logger.LogInformation($"CorrelationId :{answerCallResult.CallConnectionProperties.CorrelationId}");
+                    _logger.LogInformation($"Targets before call connection ------>");
+                    foreach (var target in answerCallResult.CallConnectionProperties.Targets)
+                    {
+                        _logger.LogInformation($"{target.RawId}");
+                    }
 
                     _ = Task.Run(async () =>
                     {
@@ -92,6 +97,12 @@ namespace CallAutomation_Playground.Controllers
                                 CommunicationIdentifier.FromRawId(incomingCallEventData.FromCommunicationIdentifier.RawId),
                                 answerCallResult.CallConnection,
                                 eventResult.SuccessResult.ServerCallId);
+
+                            _logger.LogInformation($"Targets after call connected ------>");
+                            foreach (var target in answerCallResult.CallConnection.GetCallConnectionProperties().Value.Targets)
+                            {
+                                _logger.LogInformation($"{target.RawId}");
+                            }
                         }
                     });
                 }

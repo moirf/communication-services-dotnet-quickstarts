@@ -19,8 +19,6 @@ namespace CallAutomation_Playground.Controllers
         private readonly ITopLevelMenuService _topLevelMenuService;
         private readonly IOngoingEventHandler _ongoingEventHandler;
         CommunicationIdentifier _target;
-        CommunicationIdentifier formattedTargetIdentifier;
-        CallConnection callConnection;
         string callConnectionId = string.Empty;
 
         public OutboundCallController(
@@ -68,6 +66,12 @@ namespace CallAutomation_Playground.Controllers
                     CreateCallResult createCallResult = await _callAutomationClient.CreateCallAsync(callInvite, _playgroundConfig.CallbackUri);
                     callConnectionId = createCallResult.CallConnectionProperties.CallConnectionId;
 
+                    _logger.LogInformation($"Targets before call connection ------>");
+                    foreach (var t in createCallResult.CallConnectionProperties.Targets)
+                    {
+                        _logger.LogInformation($"{t.RawId}");
+                    }
+
                     _ = Task.Run(async () =>
                     {
                         // attaching ongoing event handler for specific events
@@ -79,7 +83,6 @@ namespace CallAutomation_Playground.Controllers
                         // Wait for 40 seconds before throwing timeout error.
                         var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(40));
                         CreateCallEventResult eventResult = await createCallResult.WaitForEventProcessorAsync(tokenSource.Token);
-                        callConnection = createCallResult.CallConnection;
 
                         if (eventResult.IsSuccess)
                         {
@@ -88,8 +91,14 @@ namespace CallAutomation_Playground.Controllers
                             callConnectionConfig.callConnection = createCallResult.CallConnection;
                             await _topLevelMenuService.InvokeTopLevelMenu(
                                 _target,
-                                callConnection,
+                                createCallResult.CallConnection,
                                 eventResult.SuccessResult.ServerCallId);
+
+                            _logger.LogInformation($"Targets after call connected ------>");
+                            foreach (var target in createCallResult.CallConnection.GetCallConnectionProperties().Value.Targets)
+                            {
+                                _logger.LogInformation($"{target.RawId}");
+                            }
                         }
                     });
                 }
@@ -102,31 +111,5 @@ namespace CallAutomation_Playground.Controllers
 
             return Ok(callConnectionId);
         }
-        [HttpPost("AddParticipant")]
-        public IActionResult AddParticipant([FromQuery] string target)
-        {
-            ICallingModules callingModule = new CallingModules(callConnection, _playgroundConfig);
-            var addedParticipants = target.Split(';');
-            foreach (var Participantidentity in addedParticipants)
-            {
-                CallInvite? callInvite = null;
-                if (!string.IsNullOrEmpty(Participantidentity))
-                {
-                    formattedTargetIdentifier = Tools.FormateTargetIdentifier(Participantidentity.Trim());
-                    _logger.LogInformation($"TargetIdentifier to Call[{formattedTargetIdentifier}]");
-
-                    // then add the phone number
-                    callingModule.AddParticipantAsync(
-                       formattedTargetIdentifier,
-                       _playgroundConfig.AllPrompts.AddParticipantSuccess,
-                       _playgroundConfig.AllPrompts.AddParticipantFailure,
-                       _playgroundConfig.AllPrompts.Music);
-                    _logger.LogInformation($"Add Participant finished.");
-                }
-            }
-
-            return Ok();
-        }
-
     }
 }
