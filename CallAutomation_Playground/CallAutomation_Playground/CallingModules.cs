@@ -93,8 +93,8 @@ namespace CallAutomation_Playground
             // Play hold music while the participant is joining
             await PlayHoldMusicInLoopAsync(musicPrompt);
 
-            // give maximum 40 seconds timeout for other party to answer the call,
-            var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+            // give maximum 60 seconds timeout for other party to answer the call,
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(60));
             AddParticipantEventResult addParticipantEventResult = await addParticipantResult.WaitForEventProcessorAsync(tokenSource.Token);
 
             // As soon as event comesback (or the timeout happens)
@@ -124,8 +124,8 @@ namespace CallAutomation_Playground
             // go through the list and remove each one 
             foreach (var participant in participantsList)
             {
-                // Remov all PSTN participants that is not the original caller
-                if (participant.Identifier is PhoneNumberIdentifier && participant.Identifier.RawId != originalCaller.RawId)
+                // Remove all participants that is not the original caller
+                if (participant.Identifier.RawId != originalCaller.RawId)
                 {
                     await _callConnection.RemoveParticipantAsync(participant.Identifier);
                 }
@@ -135,12 +135,20 @@ namespace CallAutomation_Playground
         }
 
         public async Task<bool> TransferCallAsync(
-            PhoneNumberIdentifier transferTo,
+            CommunicationIdentifier transferTo,
             Uri failurePrompt)
         {
+            TransferCallToParticipantResult transferCallToParticipantResult = null;
+            if (transferTo.GetType() == typeof(PhoneNumberIdentifier))
+            {
+                transferCallToParticipantResult = await _callConnection.TransferCallToParticipantAsync((PhoneNumberIdentifier)transferTo);
+            }
+            else if (transferTo.GetType() == typeof(CommunicationUserIdentifier))
+            {
+                transferCallToParticipantResult = await _callConnection.TransferCallToParticipantAsync((CommunicationUserIdentifier)transferTo);
+            }
             // send transfer request
-            TransferCallToParticipantResult transferCallToParticipantResult = await _callConnection.TransferCallToParticipantAsync(transferTo);
-
+            transferCallToParticipantResult = await _callConnection.TransferCallToParticipantAsync(transferTo);
             TransferCallToParticipantEventResult transferCallToParticipantEventResult = await transferCallToParticipantResult.WaitForEventProcessorAsync();
 
             if (transferCallToParticipantEventResult.IsSuccess)

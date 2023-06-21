@@ -10,7 +10,7 @@ namespace CallAutomation_Playground.Interfaces
 
         Task RemoveAllParticipantExceptCallerAsync(CommunicationIdentifier originalCaller);
 
-        Task<bool> TransferCallAsync(PhoneNumberIdentifier transferTo, Uri failurePrompt);
+        Task<bool> TransferCallAsync(CommunicationIdentifier transferTo, Uri failurePrompt);
 
         Task PlayHoldMusicInLoopAsync(Uri musicPrompt);
 

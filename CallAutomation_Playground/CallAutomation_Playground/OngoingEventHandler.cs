@@ -1,5 +1,4 @@
-﻿using Azure.Communication;
-using Azure.Communication.CallAutomation;
+﻿using Azure.Communication.CallAutomation;
 using CallAutomation_Playground.Interfaces;
 
 namespace CallAutomation_Playground
@@ -27,7 +26,8 @@ namespace CallAutomation_Playground
         /// </summary>
         public void AttachCountParticipantsInTheCall(string callConnectionId)
         {
-            _eventProcessor.AttachOngoingEventProcessor<ParticipantsUpdated>(callConnectionId, recievedEvent => {
+            _eventProcessor.AttachOngoingEventProcessor<ParticipantsUpdated>(callConnectionId, recievedEvent =>
+            {
                 _logger.LogInformation($"Number of participants in this Call: [{callConnectionId}], Number Of Participants[{recievedEvent.Participants.Count}]");
             });
         }
@@ -38,7 +38,8 @@ namespace CallAutomation_Playground
         /// </summary>
         public void AttachDisconnectedWrapup(string callConnectionId)
         {
-            _eventProcessor.AttachOngoingEventProcessor<CallDisconnected>(callConnectionId, recievedEvent => {
+            _eventProcessor.AttachOngoingEventProcessor<CallDisconnected>(callConnectionId, recievedEvent =>
+            {
                 _logger.LogInformation($"Call is disconnected!: [{callConnectionId}]");
             });
         }
