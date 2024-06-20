@@ -182,8 +182,6 @@ publish/
 # in these scripts will be unencrypted
 PublishScripts/
 
-*.arm.json
-
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages
